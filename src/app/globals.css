@@ -1,26 +1,359 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@config "../../tailwind.config.js";
+
+@custom-variant dark (&:is(.dark *));
 
 :root {
+  --font-size: 14px;
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: oklch(0.145 0 0);
+  --card: #ffffff;
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: #030213;
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.95 0.0058 264.53);
+  --secondary-foreground: #030213;
+  --muted: #ececf0;
+  --muted-foreground: #717182;
+  --accent: #e9ebef;
+  --accent-foreground: #030213;
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --input: transparent;
+  --input-background: #f3f3f5;
+  --switch-background: #cbced4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: #030213;
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #e4e4e7;
+  --card: #111111;
+  --card-foreground: #e4e4e7;
+  --popover: #111111;
+  --popover-foreground: #e4e4e7;
+  --primary: #22c55e;
+  --primary-foreground: #000000;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #e4e4e7;
+  --muted: #1a1a1a;
+  --muted-foreground: #a1a1aa;
+  --accent: #1a1a1a;
+  --accent-foreground: #e4e4e7;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: #262626;
+  --input: #1a1a1a;
+  --ring: #22c55e;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: #22c55e;
+  --chart-2: #16a34a;
+  --chart-3: #15803d;
+  --chart-4: #166534;
+  --chart-5: #14532d;
+  --sidebar: #0f0f0f;
+  --sidebar-foreground: #e4e4e7;
+  --sidebar-primary: #22c55e;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #1a1a1a;
+  --sidebar-accent-foreground: #e4e4e7;
+  --sidebar-border: #262626;
+  --sidebar-ring: #22c55e;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/**
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+    h1 {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h2 {
+      font-size: var(--text-xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    h4 {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    p {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+
+    label {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+    }
+
+    button {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.5;
+      cursor: pointer;
+    }
+
+    input {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+/* Modal size classes */
+.modal-large {
+  max-width: 900px;
+  width: 100%;
+}
+
+/* Ensure portal components inherit theme */
+[data-radix-portal] {
+  @apply text-foreground;
+}
+
+/* Dropdown menu theme inheritance */
+[data-radix-popper-content-wrapper] {
+  @apply text-foreground;
+}
+
+/* Dialog overlay theme */
+[data-radix-dialog-overlay] {
+  @apply bg-black/80;
+}
+
+/* Ensure all portal content uses theme colors */
+[data-radix-portal] * {
+  color: inherit;
+}
+
+/* Specific fixes for dropdown content */
+.dark [data-radix-portal] [role="menu"],
+.dark [data-radix-portal] [role="listbox"],
+.dark [data-radix-portal] [role="dialog"] {
+  @apply bg-popover border-border text-popover-foreground;
+}
+
+/* Ensure select content inherits theme */
+.dark [data-radix-select-content] {
+  @apply bg-popover border-border text-popover-foreground;
+}
+
+/* Ensure dropdown menu content inherits theme */
+.dark [data-radix-dropdown-menu-content] {
+  @apply bg-popover border-border text-popover-foreground;
+}
+
+/* Ensure context menu content inherits theme */
+.dark [data-radix-context-menu-content] {
+  @apply bg-popover border-border text-popover-foreground;
+}
+
+/* Ensure popover content inherits theme */
+.dark [data-radix-popover-content] {
+  @apply bg-popover border-border text-popover-foreground;
+}
+
+/* Command palette theme */
+.dark [cmdk-root] {
+  @apply bg-popover text-popover-foreground;
+}
+
+/* Toast notifications theme */
+.dark [data-sonner-toaster] {
+  @apply text-foreground;
+}
+
+.dark [data-sonner-toast] {
+  @apply bg-background border-border text-foreground;
+}
+
+/* Calendar theme */
+.dark [data-radix-calendar] {
+  @apply bg-popover border-border text-popover-foreground;
+}
+
+/* Ensure all portal elements inherit theme from document */
+:root.dark [data-radix-portal] {
+  color-scheme: dark;
+}
+
+:root.dark [data-radix-portal] * {
+  --background: #0a0a0a;
+  --foreground: #e4e4e7;
+  --card: #111111;
+  --card-foreground: #e4e4e7;
+  --popover: #111111;
+  --popover-foreground: #e4e4e7;
+  --primary: #22c55e;
+  --primary-foreground: #000000;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #e4e4e7;
+  --muted: #1a1a1a;
+  --muted-foreground: #a1a1aa;
+  --accent: #1a1a1a;
+  --accent-foreground: #e4e4e7;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: #262626;
+  --input: #1a1a1a;
+  --ring: #22c55e;
+}
+
+/* Additional theme inheritance for portal content */
+html.dark [data-radix-portal] [role="menu"],
+html.dark [data-radix-portal] [role="listbox"],
+html.dark [data-radix-portal] [role="dialog"],
+html.dark [data-radix-portal] [role="alertdialog"] {
+  background-color: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Force theme for any stubborn elements */
+body.dark [data-radix-portal] {
+  --background: #0a0a0a;
+  --foreground: #e4e4e7;
+  --popover: #111111;
+  --popover-foreground: #e4e4e7;
+  --border: #262626;
+}
+
+/* CMDK (Command Palette) theme fixes */
+.dark [cmdk-root] {
+  background-color: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+}
+
+.dark [cmdk-input] {
+  background-color: transparent !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark [cmdk-input]::placeholder {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.dark [cmdk-item] {
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark [cmdk-item][aria-selected="true"] {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
+
+.dark [cmdk-group-heading] {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.dark [cmdk-separator] {
+  background-color: hsl(var(--border)) !important;
+}
+
+/* Ensure any remaining portal elements get theme */
+html.dark [data-reach-portal],
+html.dark [data-floating-ui-portal] {
+  color-scheme: dark;
+}
+
+html.dark [data-reach-portal] *,
+html.dark [data-floating-ui-portal] * {
+  --background: #0a0a0a;
+  --foreground: #e4e4e7;
+  --popover: #111111;
+  --popover-foreground: #e4e4e7;
+  --border: #262626;
 }
