@@ -4,6 +4,7 @@ import { Login } from "@everipedia/iq-login/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useRef, useTransition } from "react";
 import { toast } from "sonner";
+import { authenticateUser } from "./_actions";
 
 function LoginPage() {
 	const searchParams = useSearchParams();
@@ -13,25 +14,21 @@ function LoginPage() {
 	const isProcessingRef = useRef(false);
 
 	const handleLoginRedirect = async () => {
-		if (isProcessingRef.current) {
-			console.log("ℹ️ Login already in progress, ignoring duplicate call");
-			return;
-		}
-
+		if (isProcessingRef.current) return;
 		isProcessingRef.current = true;
 		const loadingToast = toast.loading("Logging in...");
 
 		try {
+			await authenticateUser();
+
 			startTransition(() => {
 				router.push(from || "/");
 			});
 
-			toast.success("Login successful", {
-				id: loadingToast,
-			});
+			toast.success("Login successful", { id: loadingToast });
 		} catch (error) {
-			console.error("🚨 Login error:", error);
-			toast.error("Failed to login. Please try again.", {
+			console.error("Login completion error:", error);
+			toast.error("Failed to complete login. Please try again.", {
 				id: loadingToast,
 			});
 		} finally {

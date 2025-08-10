@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  name      String?
+  avatarUrl String?
+  wallet    String?  @unique // primary wallet address (wagmi/SIWE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  preferences UserPreference?
+  savedProps  SavedProperty[]
+  proposals   Proposal[]
+}
+
+model UserPreference {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  budgetMin Int?
+  budgetMax Int?
+  currency  Currency  @default(EUR)
+  risk      RiskLevel @default(MODERATE)
+  goals     Goal[]
+  locations String[] // e.g. ["Spain", "Portugal"]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Property {
+  id         String         @id @default(cuid())
+  source     PropertySource
+  sourceId   String? // external listing ID
+  url        String?
+  address    String?
+  city       String?
+  country    String?
+  lat        Float?
+  lng        Float?
+  priceMinor Int?
+  currency   Currency?
+  metadata   Json? // flexible: type, bedrooms, bathrooms, sqft, photos, etc.
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  analyses  Analysis[]
+  savedBy   SavedProperty[]
+  proposals Proposal[]
+}
+
+model Analysis {
+  id         String   @id @default(cuid())
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  data      Json? // AI/MCP output (capRate, yield, rent comps, neighborhood scores, etc.)
+  createdAt DateTime @default(now())
+}
+
+model SavedProperty {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  note      String?
+  tags      String[] // e.g. ["High yield", "Tokenizable"]
+  createdAt DateTime @default(now())
+
+  @@unique([userId, propertyId])
+}
+
+model Proposal {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+
+  title        String
+  memoMarkdown String // generatedProposalMemo output
+  status       String   @default("DRAFT") // DRAFT | FINALIZED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  token TokenContract?
+}
+
+model TokenContract {
+  id         String   @id @default(cuid())
+  proposalId String   @unique
+  proposal   Proposal @relation(fields: [proposalId], references: [id])
+
+  standard    String // "ERC20" | "ERC721"
+  name        String
+  symbol      String
+  totalSupply String
+  metadata    Json?
+  address     String? // if deployed to testnet
+  createdAt   DateTime @default(now())
+}
+
+enum RiskLevel {
+  LOW
+  MODERATE
+  HIGH
+}
+
+enum Goal {
+  CASHFLOW
+  APPRECIATION
+  FLIP
+  CO_OWNERSHIP
+}
+
+enum PropertySource {
+  ZILLOW
+  REDFIN
+  MLS
+  CRAIGSLIST
+  MANUAL
+}
+
+enum Currency {
+  USD
+  EUR
+  GBP
+}

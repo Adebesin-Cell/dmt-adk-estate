@@ -28,16 +28,16 @@ export default async function RootLayout({
 	const { countries } = await getCountries();
 	return (
 		<html lang="en">
-			<ClientProviders>
-				<body
-					className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
-				>
+			<body
+				className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-background text-foreground`}
+			>
+				<ClientProviders>
 					<div className="flex flex-col h-screen">
 						<Navbar countries={countries} />
 						{children}
 					</div>
-				</body>
-			</ClientProviders>
+				</ClientProviders>
+			</body>
 		</html>
 	);
 }
