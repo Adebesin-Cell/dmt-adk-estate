@@ -91,8 +91,8 @@ model Proposal {
   property   Property @relation(fields: [propertyId], references: [id])
 
   title        String
-  memoMarkdown String // generatedProposalMemo output
-  status       String   @default("DRAFT") // DRAFT | FINALIZED
+  memoMarkdown String
+  status       String   @default("DRAFT")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

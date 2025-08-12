@@ -2,9 +2,12 @@
 
 import { env } from "@/env";
 import { buildFlagUrls } from "@/lib/helpers/build-flag-urls";
+import { authActionClient } from "@/lib/integration/next-safe-action";
+import { prisma } from "@/lib/integration/prisma";
+import { getAuth } from "@everipedia/iq-login";
 import axios from "axios";
 import { unstable_cache } from "next/cache";
-import { countryResponseSchema } from "./_schema";
+import { countryResponseSchema, profileSchema } from "./_schema";
 
 export const getCountries = async () =>
 	unstable_cache(
@@ -33,3 +36,33 @@ export const getCountries = async () =>
 			tags: ["countries"],
 		},
 	)();
+
+export const getUser = async () => {
+	const { token, address } = await getAuth();
+
+	if (!token || !address) {
+		throw new Error("🚨 User not authorized! Please login to proceed.");
+	}
+
+	return await prisma.user.findUnique({
+		where: { wallet: address.toLowerCase() },
+	});
+};
+
+export const updateProfileAction = authActionClient
+	.schema(profileSchema)
+	.action(async ({ parsedInput, ctx: { address } }) => {
+		const wallet = address.toLowerCase();
+		const { firstName, lastName, email } = parsedInput;
+		const name =
+			[firstName, lastName].filter(Boolean).join(" ").trim() || undefined;
+
+		const user = await prisma.user.upsert({
+			where: { wallet },
+			update: { name, email },
+			create: { wallet, name, email },
+			select: { id: true, wallet: true, name: true, email: true },
+		});
+
+		return { ok: true, user };
+	});

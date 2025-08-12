@@ -5,6 +5,7 @@ export const env = createEnv({
 	server: {
 		COUNTRIES_NOW_API: z.string().min(1),
 		DATABASE_URL: z.string().min(1),
+		LLM_MODEL: z.string().optional(),
 	},
 
 	client: {
