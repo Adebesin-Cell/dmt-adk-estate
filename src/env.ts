@@ -6,6 +6,10 @@ export const env = createEnv({
 		COUNTRIES_NOW_API: z.string().min(1),
 		DATABASE_URL: z.string().min(1),
 		LLM_MODEL: z.string(),
+		RAPIDAPI_KEY: z.string().min(1),
+		LEBONCOIN_API_KEY: z.string().min(1),
+		GOOGLE_MAPS_KEY: z.string().min(1),
+		BING_SEARCH_KEY: z.string().min(1),
 	},
 
 	client: {
