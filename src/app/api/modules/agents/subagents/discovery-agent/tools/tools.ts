@@ -45,7 +45,7 @@ const Schema = z.object({
 });
 
 export const searchCraigslist = createTool({
-	name: "search/craigslist",
+	name: "search_craigslist",
 	description:
 		"Scrape Craigslist housing listings for a given region subdomain and return Prisma-ready Property-like objects.",
 	schema: Schema,

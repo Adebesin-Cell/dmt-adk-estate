@@ -14,7 +14,7 @@ export const countryResponseSchema = z.object({
 export const profileSchema = z.object({
 	firstName: z.string().trim().max(50).optional().default(""),
 	lastName: z.string().trim().max(50).optional().default(""),
-	email: z.email().optional(),
+	email: z.string().optional(),
 	organization: z
 		.string()
 		.trim()
