@@ -132,6 +132,8 @@ enum PropertySource {
   MLS
   CRAIGSLIST
   MANUAL
+  RIGHTMOVE
+  LEBONCOIN
 }
 
 enum Currency {
