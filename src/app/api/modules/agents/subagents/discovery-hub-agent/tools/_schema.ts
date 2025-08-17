@@ -9,9 +9,10 @@ export const SearchQuerySchema = z.object({
 				.describe("Region/location tokens (e.g., 'losangeles', 'London')"),
 		)
 		.min(1),
-	budgetMinMajor: z.number().nullable().optional(),
-	budgetMaxMajor: z.number().nullable().optional(),
-	bedroomsMin: z.number().nullable().optional(),
+	budgetMinMajor: z.number().nullish(),
+	budgetMaxMajor: z.number().nullish(),
+	bedroomsMin: z.number().nullish(),
+	listingType: z.string().nullish(),
 });
 
 export const PagingSchema = z.object({

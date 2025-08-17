@@ -8,52 +8,100 @@ type PropertyDraft = Omit<
 	"id" | "createdAt" | "updatedAt"
 >;
 
+const ZILLOW_URL = "https://zillow56.p.rapidapi.com/propertyExtendedSearch";
+const ZILLOW_HEADERS = {
+	"X-RapidAPI-Key": env.RAPIDAPI_KEY,
+	"X-RapidAPI-Host": "zillow56.p.rapidapi.com",
+};
+
+function toMinor(price: unknown): number | null {
+	// Accept number or string like "450000" or "$450,000"
+	if (price == null) return null;
+	if (typeof price === "number" && Number.isFinite(price))
+		return Math.round(price * 100);
+	if (typeof price === "string") {
+		const cleaned = price.replace(/[^0-9.]/g, "");
+		const num = Number(cleaned);
+		return Number.isFinite(num) ? Math.round(num * 100) : null;
+	}
+	return null;
+}
+
+function zillowLink(zpid?: string | number | null): string | null {
+	if (zpid == null) return null;
+	const id = String(zpid);
+
+	return `https://www.zillow.com/homedetails/${id}_zpid/`;
+}
+
 export const searchZillow = createTool({
 	name: "search_zillow",
 	description: "Fetch Zillow listings via RapidAPI Zillow endpoint.",
 	schema: CommonSearchSchema,
 	fn: async ({ query, paging }) => {
-		const url = "https://zillow56.p.rapidapi.com/propertyExtendedSearch";
-		const params = new URLSearchParams({
-			location: query.locations?.[0] ?? "Los Angeles",
-			home_type: "Houses",
-			page: "1",
+		const locations = query.locations?.filter(Boolean) ?? [];
+		if (locations.length === 0) {
+			return {
+				listings: [],
+				note: "Zillow search requires a location. Please provide a city/ZIP (e.g., “Seattle, WA”).",
+			};
+		}
+
+		const requests = locations.map(async (loc) => {
+			const params = new URLSearchParams({
+				location: loc,
+				page: "1",
+			});
+
+			if (query.budgetMinMajor != null)
+				params.set("minPrice", String(query.budgetMinMajor));
+			if (query.budgetMaxMajor != null)
+				params.set("maxPrice", String(query.budgetMaxMajor));
+			if (query.bedroomsMin != null)
+				params.set("bedsMin", String(query.bedroomsMin));
+
+			const url = `${ZILLOW_URL}?${params.toString()}`;
+
+			try {
+				const res = await fetch(url, { headers: ZILLOW_HEADERS });
+				if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+				const data = await res.json();
+
+				const items: PropertyDraft[] = (data?.props ?? []).map((p: any) => ({
+					source: PropertySource.ZILLOW,
+					sourceId: p.zpid ? String(p.zpid) : null,
+					url: zillowLink(p.zpid) ?? p.detailUrl ?? null,
+					address: p.address ?? p.streetAddress ?? null,
+					city: p.city ?? null,
+					state: p.state ?? p.stateCode ?? null,
+					postalCode: p.zipcode ?? p.postalCode ?? null,
+					country: "US",
+					lat: typeof p.latitude === "number" ? p.latitude : null,
+					lng: typeof p.longitude === "number" ? p.longitude : null,
+					priceMinor: toMinor(p.price),
+					currency: Currency.USD,
+					metadata: p,
+				}));
+
+				return items;
+			} catch (e: any) {
+				console.error("Zillow search failed:", e);
+				// Surface a concise error for the orchestrator; don't throw unless you want the hub to fail fast
+				return [];
+			}
 		});
-		if (query.budgetMinMajor != null)
-			params.set("minPrice", String(query.budgetMinMajor));
-		if (query.budgetMaxMajor != null)
-			params.set("maxPrice", String(query.budgetMaxMajor));
-		if (query.bedroomsMin != null)
-			params.set("bedsMin", String(query.bedroomsMin));
 
-		const res = await fetch(`${url}?${params.toString()}`, {
-			headers: {
-				"X-RapidAPI-Key": env.RAPIDAPI_KEY,
-				"X-RapidAPI-Host": "zillow56.p.rapidapi.com",
-			},
-		});
-		if (!res.ok)
-			throw new Error(`Zillow API failed: ${res.status} ${res.statusText}`);
-		const data = await res.json();
+		const all = (await Promise.all(requests)).flat();
+		const byId = new Map<string, PropertyDraft>();
+		for (const item of all) {
+			const key =
+				item.sourceId ?? `${item.address}|${item.city}|${item.lat}|${item.lng}`;
+			if (!byId.has(key)) byId.set(key, item);
+		}
 
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		const listings: PropertyDraft[] = (data.props ?? []).map((p: any) => ({
-			source: PropertySource.ZILLOW,
-			sourceId: p.zpid ? String(p.zpid) : null,
-			url: p.zpid ? `https://www.zillow.com/homedetails/${p.zpid}_zpid/` : null,
-			address: p.address ?? null,
-			city: p.city ?? null,
-			country: "US",
-			lat: typeof p.latitude === "number" ? p.latitude : null,
-			lng: typeof p.longitude === "number" ? p.longitude : null,
-			priceMinor:
-				typeof p.price === "number" ? Math.round(p.price * 100) : null,
-			currency: Currency.USD,
-			metadata: p,
-			createdAt: undefined,
-			updatedAt: undefined,
-		}));
+		const limit = Math.max(1, Math.min(paging?.limit ?? 20, 100));
+		const listings = Array.from(byId.values()).slice(0, limit);
 
-		return { listings: listings.slice(0, paging.limit) };
+		return { listings };
 	},
 });

@@ -1,6 +1,7 @@
 import { env } from "@/env";
 import { createTool } from "@iqai/adk";
 import { PropertySource } from "@prisma/client";
+import type { z } from "zod";
 import { CommonSearchSchema, type PropertyDraft } from "./_schema";
 
 type BingWebPage = {
@@ -25,6 +26,8 @@ type GMapsTextSearchResponse = {
 	results?: GMapsPlace[];
 	status?: string;
 };
+
+type CommonSearch = z.infer<typeof CommonSearchSchema>;
 
 function toBingListings(
 	items: BingWebPage[],
@@ -86,12 +89,8 @@ function dedupeByUrl(items: PropertyDraft[]): PropertyDraft[] {
 	const out: PropertyDraft[] = [];
 	for (const it of items) {
 		const key = (it.url ?? "").toLowerCase();
-		if (!key) {
-			out.push(it);
-			continue;
-		}
-		if (!seen.has(key)) {
-			seen.add(key);
+		if (!key || !seen.has(key)) {
+			if (key) seen.add(key);
 			out.push(it);
 		}
 	}
@@ -100,7 +99,6 @@ function dedupeByUrl(items: PropertyDraft[]): PropertyDraft[] {
 
 async function fetchBingListings(q: string): Promise<PropertyDraft[]> {
 	const endpoint = "https://bing-web-search1.p.rapidapi.com/v7.0/search";
-
 	const res = await fetch(`${endpoint}?q=${encodeURIComponent(q)}`, {
 		headers: {
 			"X-RapidAPI-Key": env.RAPIDAPI_KEY,
@@ -134,21 +132,66 @@ async function fetchGMapsPlaces(q: string): Promise<PropertyDraft[]> {
 	return toGMapsListings(results);
 }
 
+function buildQuery(query: CommonSearch["query"]) {
+	const locations = Array.isArray(query.locations)
+		? query.locations.filter(Boolean)
+		: [];
+
+	if (locations.length === 0) return "";
+
+	const tokens: string[] = [];
+
+	const intent =
+		query.listingType === "rent" ? "homes for rent" : "homes for sale";
+	tokens.push(intent);
+
+	tokens.push(locations.join(" "));
+
+	if (typeof query.bedroomsMin === "number")
+		tokens.push(`${query.bedroomsMin}+ bedroom`);
+	if (typeof query.budgetMaxMajor === "number")
+		tokens.push(`under ${query.budgetMaxMajor}`);
+	if (typeof query.budgetMinMajor === "number")
+		tokens.push(`over ${query.budgetMinMajor}`);
+
+	return tokens.join(" ").trim();
+}
+
 export const searchWebFallback = createTool({
 	name: "search_web_fallback",
 	description:
 		"Fallback: combine Bing Web Search (via RapidAPI) and Google Maps Places Text Search to surface relevant pages/places.",
 	schema: CommonSearchSchema,
 	fn: async ({ query, paging }) => {
-		const locations = Array.isArray(query.locations) ? query.locations : [];
-		const q = `homes for sale ${locations.join(" ")}`.trim();
+		const limit = Math.max(1, Math.min(paging?.limit ?? 20, 50));
 
-		const [bing, gmaps] = await Promise.all([
-			fetchBingListings(q).catch(() => []),
-			fetchGMapsPlaces(q).catch(() => []),
+		const q = buildQuery(query);
+		if (!q) {
+			return {
+				listings: [],
+				note: "Web search needs a location (e.g., city/area/ZIP). Please provide at least one location.",
+			};
+		}
+
+		// Run providers in parallel but isolate failures.
+		const [bingRes, gmapsRes] = await Promise.allSettled([
+			fetchBingListings(q),
+			fetchGMapsPlaces(q),
 		]);
 
-		const merged = dedupeByUrl([...bing, ...gmaps]);
-		return { listings: merged.slice(0, paging.limit) };
+		const bing = bingRes.status === "fulfilled" ? bingRes.value : [];
+		const gmaps = gmapsRes.status === "fulfilled" ? gmapsRes.value : [];
+
+		const merged = dedupeByUrl([...bing, ...gmaps]).slice(0, limit);
+
+		if (merged.length === 0) {
+			// Surface a helpful note rather than throwing; lets the Hub offer adjustments.
+			return {
+				listings: [],
+				note: "No relevant web results found. Try broadening the area or relaxing filters (price/bedrooms).",
+			};
+		}
+
+		return { listings: merged };
 	},
 });
