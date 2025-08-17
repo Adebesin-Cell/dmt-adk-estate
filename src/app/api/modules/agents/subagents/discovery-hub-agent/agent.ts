@@ -12,11 +12,14 @@ import { createZillowAgent } from "./zillow-agent";
 type HubOptions = { isRunningTest?: boolean };
 
 export const createDiscoveryHubAgent = async (opts: HubOptions = {}) => {
-	const craigslist = await createCraigslistAgent();
-	const zillow = await createZillowAgent();
-	const rightmove = await createRightmoveAgent();
-	const leboncoin = await createLeboncoinAgent();
-	const webFallback = await createWebFallbackAgent();
+	const [craigslist, zillow, rightmove, leboncoin, webFallback] =
+		await Promise.all([
+			createCraigslistAgent(),
+			createZillowAgent(),
+			createRightmoveAgent(),
+			createLeboncoinAgent(),
+			createWebFallbackAgent(),
+		]);
 
 	const addProperties = createAddPropertiesTool({
 		dryRun: !!opts.isRunningTest,

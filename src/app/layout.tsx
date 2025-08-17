@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { getCountries } from "./(home)/_actions";
+import { getCountries, getUser } from "./(home)/_actions";
 import { ClientProviders } from "./_components/client-providers";
 import { Navbar } from "./_components/navbar";
 
@@ -25,7 +25,7 @@ export default async function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
-	const { countries } = await getCountries();
+	const [{ countries }, user] = await Promise.all([getCountries(), getUser()]);
 	return (
 		<html lang="en">
 			<body
@@ -33,7 +33,7 @@ export default async function RootLayout({
 			>
 				<ClientProviders>
 					<div className="flex flex-col h-screen">
-						<Navbar countries={countries} />
+						<Navbar countries={countries} user={user} />
 						{children}
 					</div>
 				</ClientProviders>

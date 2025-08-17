@@ -5,9 +5,14 @@ import { buildFlagUrls } from "@/lib/helpers/build-flag-urls";
 import { authActionClient } from "@/lib/integration/next-safe-action";
 import { prisma } from "@/lib/integration/prisma";
 import { getAuth } from "@everipedia/iq-login";
+import { Currency, RiskLevel } from "@prisma/client";
 import axios from "axios";
 import { unstable_cache } from "next/cache";
-import { countryResponseSchema, profileSchema } from "./_schema";
+import {
+	countryResponseSchema,
+	preferencesSchema,
+	profileSchema,
+} from "./_schema";
 
 export const getCountries = async () =>
 	unstable_cache(
@@ -41,11 +46,16 @@ export const getUser = async () => {
 	const { token, address } = await getAuth();
 
 	if (!token || !address) {
-		throw new Error("🚨 User not authorized! Please login to proceed.");
+		return null;
 	}
 
 	return await prisma.user.findUnique({
 		where: { wallet: address.toLowerCase() },
+		include: {
+			savedProps: { include: { property: true } },
+			proposals: { include: { property: true } },
+			preferences: true,
+		},
 	});
 };
 
@@ -64,5 +74,40 @@ export const updateProfileAction = authActionClient
 			select: { id: true, wallet: true, name: true, email: true },
 		});
 
-		return { ok: true, user };
+		return { user };
+	});
+
+export const savePreferences = authActionClient
+	.schema(preferencesSchema)
+	.action(async ({ ctx, parsedInput }) => {
+		const user = await prisma.user.findUnique({
+			where: { wallet: ctx.address },
+		});
+
+		if (!user) {
+			throw new Error("User not found. Please complete onboarding.");
+		}
+
+		const prefs = await prisma.userPreference.upsert({
+			where: { userId: user.id },
+			create: {
+				userId: user.id,
+				budgetMin: parsedInput.budgetMin ?? null,
+				budgetMax: parsedInput.budgetMax ?? null,
+				currency: parsedInput.currency ?? Currency.EUR,
+				risk: parsedInput.risk ?? RiskLevel.MODERATE,
+				goals: parsedInput.goals ?? [],
+				locations: parsedInput.locations ?? [],
+			},
+			update: {
+				budgetMin: parsedInput.budgetMin ?? null,
+				budgetMax: parsedInput.budgetMax ?? null,
+				currency: parsedInput.currency ?? undefined,
+				risk: parsedInput.risk ?? undefined,
+				goals: parsedInput.goals ?? undefined,
+				locations: parsedInput.locations ?? undefined,
+			},
+		});
+
+		return { success: true, preferences: prefs };
 	});
