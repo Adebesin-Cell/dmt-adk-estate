@@ -52,14 +52,13 @@ function toGMapsListings(places: GMapsPlace[]): PropertyDraft[] {
 		const placeUrl = `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(
 			pl.place_id,
 		)}`;
+
 		const lat =
-			pl.geometry?.location?.lat !== undefined &&
-			pl.geometry.location.lat !== null
+			typeof pl.geometry?.location?.lat === "number"
 				? pl.geometry.location.lat
 				: null;
 		const lng =
-			pl.geometry?.location?.lng !== undefined &&
-			pl.geometry.location.lng !== null
+			typeof pl.geometry?.location?.lng === "number"
 				? pl.geometry.location.lng
 				: null;
 
@@ -100,17 +99,22 @@ function dedupeByUrl(items: PropertyDraft[]): PropertyDraft[] {
 }
 
 async function fetchBingListings(q: string): Promise<PropertyDraft[]> {
-	const res = await fetch(
-		`https://api.bing.microsoft.com/v7.0/search?q=${encodeURIComponent(q)}`,
-		{
-			headers: { "Ocp-Apim-Subscription-Key": env.BING_SEARCH_KEY },
+	const endpoint = "https://bing-web-search1.p.rapidapi.com/v7.0/search";
+
+	const res = await fetch(`${endpoint}?q=${encodeURIComponent(q)}`, {
+		headers: {
+			"X-RapidAPI-Key": env.RAPIDAPI_KEY,
+			"X-RapidAPI-Host": "bing-web-search1.p.rapidapi.com",
 		},
-	);
-	if (!res.ok)
-		throw new Error(`Bing search failed: ${res.status} ${res.statusText}`);
+	});
+	if (!res.ok) {
+		throw new Error(
+			`Bing (RapidAPI) search failed: ${res.status} ${res.statusText}`,
+		);
+	}
 	const data: BingSearchResponse = await res.json();
 	const pages = data.webPages?.value ?? [];
-	return toBingListings(pages, "BING");
+	return toBingListings(pages, "BING_RAPIDAPI");
 }
 
 async function fetchGMapsPlaces(q: string): Promise<PropertyDraft[]> {
@@ -118,11 +122,13 @@ async function fetchGMapsPlaces(q: string): Promise<PropertyDraft[]> {
 	const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
 		q,
 	)}&key=${encodeURIComponent(env.GOOGLE_MAPS_KEY)}`;
+
 	const res = await fetch(url);
-	if (!res.ok)
+	if (!res.ok) {
 		throw new Error(
 			`Google Maps search failed: ${res.status} ${res.statusText}`,
 		);
+	}
 	const data: GMapsTextSearchResponse = await res.json();
 	const results = data.results ?? [];
 	return toGMapsListings(results);
@@ -131,10 +137,11 @@ async function fetchGMapsPlaces(q: string): Promise<PropertyDraft[]> {
 export const searchWebFallback = createTool({
 	name: "search_web_fallback",
 	description:
-		"Fallback: combine Bing Web Search and Google Maps Places Text Search to surface relevant pages/places.",
+		"Fallback: combine Bing Web Search (via RapidAPI) and Google Maps Places Text Search to surface relevant pages/places.",
 	schema: CommonSearchSchema,
 	fn: async ({ query, paging }) => {
-		const q = `homes for sale ${query.locations.join(" ")}`;
+		const locations = Array.isArray(query.locations) ? query.locations : [];
+		const q = `homes for sale ${locations.join(" ")}`.trim();
 
 		const [bing, gmaps] = await Promise.all([
 			fetchBingListings(q).catch(() => []),
