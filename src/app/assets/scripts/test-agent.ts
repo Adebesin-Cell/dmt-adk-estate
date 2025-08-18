@@ -10,9 +10,7 @@ async function run() {
 	const { runner } = await createDiscoveryHubAgent({ isRunningTest: true });
 
 	try {
-		const res = await runner.ask(
-			"Find properties in losangeles under 2500 with at least 2 bedrooms. Limit 3.",
-		);
+		const res = await runner.ask("Find properties in losangeles");
 		console.log("\n--- RESPONSE ---");
 		console.log(pretty(res));
 	} catch (err) {
