@@ -1,6 +1,10 @@
 "use client";
 
-import type { getCountries } from "@/app/(home)/_actions";
+import {
+	type getCountries,
+	type getUser,
+	savePreferences,
+} from "@/app/(home)/_actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,38 +25,65 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import type { Currency, Goal, RiskLevel } from "@prisma/client";
 import { DollarSign, MapPin, Target, TrendingUp } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import type React from "react";
+import { toast } from "sonner";
 
 type Countries = Awaited<ReturnType<typeof getCountries>>;
 
 export type PreferencesState = {
 	budget: number[];
-	selectedGoals: string[];
+	selectedGoals: Goal[];
 	selectedLocations: string[];
-	risk: "low" | "moderate" | "high";
+	risk: RiskLevel;
 };
 
 type InvestmentGoal = {
-	id: "rental-income" | "appreciation" | "flipping" | "dao-ownership";
+	id: Goal;
 	label: string;
 	description: string;
 };
 
 type UserPreferencesProps = {
 	locations: Countries["countries"];
+	user: NonNullable<Awaited<ReturnType<typeof getUser>>>;
 };
 
-export function UserPreferences({ locations }: UserPreferencesProps) {
+export function UserPreferences({ locations, user }: UserPreferencesProps) {
+	const router = useRouter();
+
+	const pref = user.preferences;
+	const initialBudgetMax =
+		typeof pref?.budgetMax === "number" ? pref?.budgetMax : 300000;
+
 	const [preferences, setPreferences] = useState<PreferencesState>({
-		budget: [300000],
-		selectedGoals: ["rental-income"],
-		selectedLocations: [],
-		risk: "moderate",
+		budget: [initialBudgetMax],
+		selectedGoals: (pref?.goals as Goal[]) ?? ["CASHFLOW"],
+		selectedLocations: pref?.locations?.map((x) => x.toLowerCase()) ?? [],
+		risk: pref?.risk ?? "MODERATE",
 	});
 
-	const toggleGoal = (goalId: InvestmentGoal["id"]) => {
+	const { execute, status } = useAction(savePreferences, {
+		onSuccess: (res) => {
+			if (res?.data?.success) {
+				router.push("/discovery");
+			}
+		},
+		onError: (e) => {
+			toast.error(
+				e.error.serverError ?? "Something went wrong, please try again.",
+			);
+		},
+	});
+
+	const saving = status === "executing";
+
+	const toggleGoal = (goalId: Goal) => {
 		setPreferences((p) => ({
 			...p,
 			selectedGoals: p.selectedGoals.includes(goalId)
@@ -73,28 +104,39 @@ export function UserPreferences({ locations }: UserPreferencesProps) {
 
 	const goals: InvestmentGoal[] = [
 		{
-			id: "rental-income",
+			id: "CASHFLOW",
 			label: "Monthly Rental Income",
 			description: "Steady cash flow",
 		},
 		{
-			id: "appreciation",
+			id: "APPRECIATION",
 			label: "Long-term Appreciation",
 			description: "Capital growth",
 		},
-		{ id: "flipping", label: "Fix & Flip", description: "Quick returns" },
+		{ id: "FLIP", label: "Fix & Flip", description: "Quick returns" },
 		{
-			id: "dao-ownership",
+			id: "CO_OWNERSHIP",
 			label: "DAO Co-ownership",
 			description: "Tokenized investment",
 		},
 	];
 
-	const goalBadgeClasses: Record<InvestmentGoal["id"], string> = {
-		"rental-income": "bg-green-500/10 text-green-500 border-green-500/30",
-		appreciation: "bg-purple-500/10 text-purple-500 border-purple-500/30",
-		flipping: "bg-orange-500/10 text-orange-500 border-orange-500/30",
-		"dao-ownership": "bg-cyan-500/10 text-cyan-500 border-cyan-500/30",
+	const goalBadgeClasses: Record<Goal, string> = {
+		CASHFLOW: "bg-green-500/10 text-green-500 border-green-500/30",
+		APPRECIATION: "bg-purple-500/10 text-purple-500 border-purple-500/30",
+		FLIP: "bg-orange-500/10 text-orange-500 border-orange-500/30",
+		CO_OWNERSHIP: "bg-cyan-500/10 text-cyan-500 border-cyan-500/30",
+	};
+
+	const startDiscovery = () => {
+		const budgetMax = Math.max(0, Math.round(preferences.budget[0] ?? 0));
+		execute({
+			budgetMax,
+			currency: (pref?.currency ?? "EUR") as Currency,
+			risk: preferences.risk,
+			goals: preferences.selectedGoals,
+			locations: preferences.selectedLocations,
+		});
 	};
 
 	return (
@@ -127,26 +169,31 @@ export function UserPreferences({ locations }: UserPreferencesProps) {
 					preferences={preferences}
 					goals={goals}
 					goalBadgeClasses={goalBadgeClasses}
+					cta={
+						<Button
+							className="w-full bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer"
+							onClick={startDiscovery}
+							disabled={saving}
+						>
+							{saving ? "Starting…" : "Start AI Property Discovery"}
+						</Button>
+					}
 				/>
 			</div>
 		</div>
 	);
 }
 
-const PreferencesHeader = () => {
-	return (
-		<Card className="bg-card border-border">
-			<CardHeader>
-				<CardTitle className="text-foreground">
-					Investment Preferences
-				</CardTitle>
-				<CardDescription className="text-muted-foreground">
-					Configure your investment criteria for AI-powered property discovery
-				</CardDescription>
-			</CardHeader>
-		</Card>
-	);
-};
+const PreferencesHeader = () => (
+	<Card className="bg-card border-border">
+		<CardHeader>
+			<CardTitle className="text-foreground">Investment Preferences</CardTitle>
+			<CardDescription className="text-muted-foreground">
+				Configure your investment criteria for AI-powered property discovery
+			</CardDescription>
+		</CardHeader>
+	</Card>
+);
 
 function BudgetRiskCard({
 	budget,
@@ -155,9 +202,9 @@ function BudgetRiskCard({
 	onRiskChange,
 }: {
 	budget: number[];
-	risk: PreferencesState["risk"];
+	risk: RiskLevel;
 	onBudgetChange: (val: number[]) => void;
-	onRiskChange: (val: PreferencesState["risk"]) => void;
+	onRiskChange: (val: RiskLevel) => void;
 }) {
 	return (
 		<Card className="bg-card border-border">
@@ -193,16 +240,19 @@ function BudgetRiskCard({
 
 				<div>
 					<Label className="text-foreground mb-3 block">Risk Tolerance</Label>
-					<Select value={risk} onValueChange={onRiskChange}>
+					<Select
+						value={risk}
+						onValueChange={(v) => onRiskChange(v as RiskLevel)}
+					>
 						<SelectTrigger className="bg-muted border-border text-foreground">
 							<SelectValue placeholder="Select risk level" />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value="low">Low Risk - Stable markets</SelectItem>
-							<SelectItem value="moderate">
+							<SelectItem value="LOW">Low Risk - Stable markets</SelectItem>
+							<SelectItem value="MODERATE">
 								Moderate Risk - Balanced approach
 							</SelectItem>
-							<SelectItem value="high">High Risk - Emerging markets</SelectItem>
+							<SelectItem value="HIGH">High Risk - Emerging markets</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
@@ -217,8 +267,8 @@ function InvestmentGoalsCard({
 	onToggleGoal,
 }: {
 	goals: InvestmentGoal[];
-	selectedGoals: string[];
-	onToggleGoal: (goalId: InvestmentGoal["id"]) => void;
+	selectedGoals: Goal[];
+	onToggleGoal: (goalId: Goal) => void;
 }) {
 	return (
 		<Card className="bg-card border-border">
@@ -317,7 +367,7 @@ function PreferredLocationsCard({
 								data-selected={selected ?? undefined}
 								onClick={() => onToggleLocation(id)}
 								className={cn(
-									"p-3 h-auto justify-center ",
+									"p-3 h-auto justify-center",
 									"rounded-lg border transition-all text-center cursor-pointer border-primary/10",
 									"flex flex-col items-center gap-1",
 									selected
@@ -365,10 +415,12 @@ function ProfileSummaryCard({
 	preferences,
 	goals,
 	goalBadgeClasses,
+	cta,
 }: {
 	preferences: PreferencesState;
 	goals: InvestmentGoal[];
-	goalBadgeClasses: Record<InvestmentGoal["id"], string>;
+	goalBadgeClasses: Record<Goal, string>;
+	cta: React.ReactNode;
 }) {
 	return (
 		<Card className="bg-card border-border">
@@ -391,8 +443,11 @@ function ProfileSummaryCard({
 							variant="secondary"
 							className="bg-yellow-500/10 text-yellow-500 border-yellow-500/30"
 						>
-							{preferences.risk.charAt(0).toUpperCase() +
-								preferences.risk.slice(1)}{" "}
+							{preferences.risk === "LOW"
+								? "Low"
+								: preferences.risk === "HIGH"
+									? "High"
+									: "Moderate"}{" "}
 							Risk
 						</Badge>
 						{preferences.selectedGoals.map((goalId) => {
@@ -412,9 +467,8 @@ function ProfileSummaryCard({
 							);
 						})}
 					</div>
-					<Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer">
-						Start AI Property Discovery
-					</Button>
+
+					{cta}
 				</div>
 			</CardContent>
 		</Card>

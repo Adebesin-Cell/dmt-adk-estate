@@ -11,7 +11,7 @@ export const createRightmoveAgent = async () =>
 			"Finds UK properties on Rightmove that fit the user’s request.",
 		tools: [searchRightmove],
 		instruction: dedent`
-      You are a Rightmove discovery agent for UK property searches.
+      You are a Rightmove discovery agent for property searches.
 
       What you do
       - Search Rightmove using only the user’s inputs (locations or identifiers, budget, bedrooms, etc.).

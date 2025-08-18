@@ -41,12 +41,21 @@ export const searchRightmove = createTool({
 	name: "search_rightmove",
 	description: "Fetch Rightmove listings via RapidAPI Rightmove endpoint.",
 	schema: CommonSearchSchema,
+	maxRetryAttempts: 1,
 	fn: async ({ query, paging }) => {
+		console.log("🏡 Starting Rightmove search...", {
+			locations: query.locations,
+			budgetRange: [query.budgetMinMajor, query.budgetMaxMajor],
+			bedroomsMin: query.bedroomsMin,
+			requestedLimit: paging?.limit,
+		});
+
 		const locations = query.locations?.filter(Boolean) ?? [];
 		if (locations.length === 0) {
+			console.log("❌ Rightmove search failed: No locations provided");
 			return {
 				listings: [],
-				note: "Rightmove search needs a location or location identifier (e.g., “Manchester” or a Rightmove locationIdentifier).",
+				note: `Rightmove search needs a location or location identifier (e.g., "Manchester" or a Rightmove locationIdentifier).`,
 			};
 		}
 
@@ -59,8 +68,15 @@ export const searchRightmove = createTool({
 		};
 
 		const type = channelToType[channel];
+		console.log(
+			`🔍 Processing ${locations.length} location(s) for ${type}: ${locations.join(", ")}`,
+		);
 
-		const perLocation = locations.map(async (loc) => {
+		const perLocation = locations.map(async (loc, index) => {
+			console.log(
+				`📍 [${index + 1}/${locations.length}] Searching location: "${loc}"`,
+			);
+
 			const params = new URLSearchParams({
 				locationIdentifier: loc,
 				type,
@@ -78,11 +94,20 @@ export const searchRightmove = createTool({
 			const url = `${RM_URL}?${params.toString()}`;
 
 			try {
+				console.log(`🌐 Making API request for "${loc}"...`);
 				const res = await fetch(url, { headers: RM_HEADERS });
-				if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-				const data = await res.json();
 
+				if (!res.ok) {
+					console.log(
+						`❌ API error for "${loc}": HTTP ${res.status} ${res.statusText}`,
+					);
+					throw new Error(`HTTP ${res.status} ${res.statusText}`);
+				}
+
+				const data = await res.json();
 				const props = Array.isArray(data?.properties) ? data.properties : [];
+				console.log(`✅ Retrieved ${props.length} properties for "${loc}"`);
+
 				const items: PropertyDraft[] = props.map((p: any) => ({
 					source: PropertySource.RIGHTMOVE,
 					sourceId: p.id ? String(p.id) : null,
@@ -100,13 +125,17 @@ export const searchRightmove = createTool({
 				}));
 
 				return items;
-			} catch (e) {
-				console.log("error fetching rightmove listings", e);
+			} catch (e: any) {
+				console.error(`❌ Rightmove search failed for "${loc}":`, e.message);
 				return [];
 			}
 		});
 
+		console.log("⏳ Waiting for all location searches to complete...");
 		const merged = (await Promise.all(perLocation)).flat();
+		console.log(
+			`📊 Raw results: ${merged.length} total properties before deduplication`,
+		);
 
 		const seen = new Map<string, PropertyDraft>();
 		for (const item of merged) {
@@ -117,6 +146,10 @@ export const searchRightmove = createTool({
 
 		const limit = Math.max(1, Math.min(paging?.limit ?? 20, 100));
 		const listings = Array.from(seen.values()).slice(0, limit);
+
+		console.log(
+			`✨ Rightmove search complete: ${listings.length} unique properties (limit: ${limit})`,
+		);
 
 		return { listings };
 	},

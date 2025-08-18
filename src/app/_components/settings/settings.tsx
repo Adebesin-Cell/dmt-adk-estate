@@ -1,6 +1,6 @@
 "use client";
 
-import type { getCountries } from "@/app/(home)/_actions";
+import type { getCountries, getUser } from "@/app/(home)/_actions";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -32,8 +32,7 @@ import {
 	User,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useAccount } from "wagmi";
+import { usePathname } from "next/navigation";
 import { AccountTab } from "./account-tab";
 import { AppearanceTab } from "./appearance-tab";
 import { SettingsHeader } from "./settings-header";
@@ -43,15 +42,15 @@ interface SettingsDialogProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
 	countries: Awaited<ReturnType<typeof getCountries>>["countries"];
+	user: Awaited<ReturnType<typeof getUser>>;
 }
 
 export function SettingsDialog({
 	open,
 	onOpenChange,
 	countries,
+	user,
 }: SettingsDialogProps) {
-	const { token } = useAuth();
-
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent className="dark modal-large max-h-[90vh] w-full p-0 bg-card border-border overflow-hidden">
@@ -106,8 +105,8 @@ export function SettingsDialog({
 							>
 								<ScrollArea className="h-full px-6">
 									<div className="py-4 pb-8">
-										{token ? (
-											<UserPreferences locations={countries} />
+										{user ? (
+											<UserPreferences locations={countries} user={user} />
 										) : (
 											<InvestmentLockedView setSettingsModal={onOpenChange} />
 										)}

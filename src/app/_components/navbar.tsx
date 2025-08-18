@@ -28,14 +28,16 @@ import {
 	SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import type { getCountries } from "../(home)/_actions";
+import type { getCountries, getUser } from "../(home)/_actions";
 import AiChatDrawer from "./ai-chat-drawer";
 import { SettingsDialog } from "./settings/settings";
 
 export function Navbar({
 	countries,
+	user,
 }: {
 	countries: Awaited<ReturnType<typeof getCountries>>["countries"];
+	user: Awaited<ReturnType<typeof getUser>>;
 }) {
 	const pathname = usePathname();
 	const from = encodeURIComponent(pathname || "/");
@@ -203,6 +205,7 @@ export function Navbar({
 					open={isSettingModalOpen}
 					onOpenChange={() => setIsSettingModalOpen(false)}
 					countries={countries}
+					user={user}
 				/>
 			)}
 			{aiOpen && (
