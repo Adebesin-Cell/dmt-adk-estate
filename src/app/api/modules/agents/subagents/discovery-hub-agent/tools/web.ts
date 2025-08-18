@@ -98,38 +98,71 @@ function dedupeByUrl(items: PropertyDraft[]): PropertyDraft[] {
 }
 
 async function fetchBingListings(q: string): Promise<PropertyDraft[]> {
+	console.log("🔍 Starting Bing search...", { query: q });
+
 	const endpoint = "https://bing-web-search1.p.rapidapi.com/v7.0/search";
-	const res = await fetch(`${endpoint}?q=${encodeURIComponent(q)}`, {
-		headers: {
-			"X-RapidAPI-Key": env.RAPIDAPI_KEY,
-			"X-RapidAPI-Host": "bing-web-search1.p.rapidapi.com",
-		},
-	});
-	if (!res.ok) {
-		throw new Error(
-			`Bing (RapidAPI) search failed: ${res.status} ${res.statusText}`,
-		);
+	try {
+		const res = await fetch(`${endpoint}?q=${encodeURIComponent(q)}`, {
+			headers: {
+				"X-RapidAPI-Key": env.RAPIDAPI_KEY,
+				"X-RapidAPI-Host": "bing-web-search1.p.rapidapi.com",
+			},
+		});
+
+		if (!res.ok) {
+			console.log(`❌ Bing API error: HTTP ${res.status} ${res.statusText}`);
+			throw new Error(
+				`Bing (RapidAPI) search failed: ${res.status} ${res.statusText}`,
+			);
+		}
+
+		const data: BingSearchResponse = await res.json();
+		const pages = data.webPages?.value ?? [];
+		console.log(`✅ Bing returned ${pages.length} web pages`);
+
+		return toBingListings(pages, "BING_RAPIDAPI");
+	} catch (e: any) {
+		console.error("❌ Bing search failed:", e.message);
+		throw e;
 	}
-	const data: BingSearchResponse = await res.json();
-	const pages = data.webPages?.value ?? [];
-	return toBingListings(pages, "BING_RAPIDAPI");
 }
 
 async function fetchGMapsPlaces(q: string): Promise<PropertyDraft[]> {
-	if (!env.GOOGLE_MAPS_KEY) return [];
+	if (!env.GOOGLE_MAPS_KEY) {
+		console.log(
+			"⚠️ Google Maps API key not configured, skipping Google Maps search",
+		);
+		return [];
+	}
+
+	console.log("🗺️ Starting Google Maps search...", { query: q });
+
 	const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(
 		q,
 	)}&key=${encodeURIComponent(env.GOOGLE_MAPS_KEY)}`;
 
-	const res = await fetch(url);
-	if (!res.ok) {
-		throw new Error(
-			`Google Maps search failed: ${res.status} ${res.statusText}`,
+	try {
+		const res = await fetch(url);
+		if (!res.ok) {
+			console.log(
+				`❌ Google Maps API error: HTTP ${res.status} ${res.statusText}`,
+			);
+			throw new Error(
+				`Google Maps search failed: ${res.status} ${res.statusText}`,
+			);
+		}
+
+		const data: GMapsTextSearchResponse = await res.json();
+		const results = data.results ?? [];
+		console.log(
+			`✅ Google Maps returned ${results.length} places (status: ${data.status})`,
 		);
+
+		return toGMapsListings(results);
+	} catch (e: any) {
+		console.error("❌ Google Maps search failed:", e.message);
+		throw e;
 	}
-	const data: GMapsTextSearchResponse = await res.json();
-	const results = data.results ?? [];
-	return toGMapsListings(results);
 }
 
 function buildQuery(query: CommonSearch["query"]) {
@@ -162,18 +195,30 @@ export const searchWebFallback = createTool({
 	description:
 		"Fallback: combine Bing Web Search (via RapidAPI) and Google Maps Places Text Search to surface relevant pages/places.",
 	schema: CommonSearchSchema,
+	maxRetryAttempts: 1,
 	fn: async ({ query, paging }) => {
+		console.log("🌐 Starting web fallback search...", {
+			locations: query.locations,
+			listingType: query.listingType,
+			budgetRange: [query.budgetMinMajor, query.budgetMaxMajor],
+			bedroomsMin: query.bedroomsMin,
+			requestedLimit: paging?.limit,
+		});
+
 		const limit = Math.max(1, Math.min(paging?.limit ?? 20, 50));
 
 		const q = buildQuery(query);
 		if (!q) {
+			console.log("❌ Web search failed: No valid query built from locations");
 			return {
 				listings: [],
 				note: "Web search needs a location (e.g., city/area/ZIP). Please provide at least one location.",
 			};
 		}
 
-		// Run providers in parallel but isolate failures.
+		console.log(`🔎 Built search query: "${q}"`);
+		console.log("⏳ Running Bing and Google Maps searches in parallel...");
+
 		const [bingRes, gmapsRes] = await Promise.allSettled([
 			fetchBingListings(q),
 			fetchGMapsPlaces(q),
@@ -182,16 +227,34 @@ export const searchWebFallback = createTool({
 		const bing = bingRes.status === "fulfilled" ? bingRes.value : [];
 		const gmaps = gmapsRes.status === "fulfilled" ? gmapsRes.value : [];
 
+		if (bingRes.status === "rejected") {
+			console.log("⚠️ Bing search failed, continuing with Google Maps only");
+		}
+		if (gmapsRes.status === "rejected") {
+			console.log("⚠️ Google Maps search failed, continuing with Bing only");
+		}
+
+		console.log(
+			`📊 Raw results: ${bing.length} from Bing, ${gmaps.length} from Google Maps`,
+		);
+
 		const merged = dedupeByUrl([...bing, ...gmaps]).slice(0, limit);
+		console.log(
+			`🔗 After deduplication: ${merged.length} unique listings (limit: ${limit})`,
+		);
 
 		if (merged.length === 0) {
-			// Surface a helpful note rather than throwing; lets the Hub offer adjustments.
+			console.log("❌ No results found after searching both providers");
+
 			return {
 				listings: [],
 				note: "No relevant web results found. Try broadening the area or relaxing filters (price/bedrooms).",
 			};
 		}
 
+		console.log(
+			`✨ Web fallback search complete: ${merged.length} listings found`,
+		);
 		return { listings: merged };
 	},
 });

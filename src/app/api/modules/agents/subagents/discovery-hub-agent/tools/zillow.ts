@@ -38,16 +38,33 @@ export const searchZillow = createTool({
 	name: "search_zillow",
 	description: "Fetch Zillow listings via RapidAPI Zillow endpoint.",
 	schema: CommonSearchSchema,
+	maxRetryAttempts: 1,
 	fn: async ({ query, paging }) => {
+		console.log("🏠 Starting Zillow search...", {
+			locations: query.locations,
+			budgetRange: [query.budgetMinMajor, query.budgetMaxMajor],
+			bedroomsMin: query.bedroomsMin,
+			requestedLimit: paging?.limit,
+		});
+
 		const locations = query.locations?.filter(Boolean) ?? [];
 		if (locations.length === 0) {
+			console.log("❌ Zillow search failed: No locations provided");
 			return {
 				listings: [],
-				note: "Zillow search requires a location. Please provide a city/ZIP (e.g., “Seattle, WA”).",
+				note: `Zillow search requires a location. Please provide a city/ZIP (e.g., "Seattle, WA").`,
 			};
 		}
 
-		const requests = locations.map(async (loc) => {
+		console.log(
+			`🔍 Processing ${locations.length} location(s): ${locations.join(", ")}`,
+		);
+
+		const requests = locations.map(async (loc, index) => {
+			console.log(
+				`📍 [${index + 1}/${locations.length}] Searching location: "${loc}"`,
+			);
+
 			const params = new URLSearchParams({
 				location: loc,
 				page: "1",
@@ -63,9 +80,19 @@ export const searchZillow = createTool({
 			const url = `${ZILLOW_URL}?${params.toString()}`;
 
 			try {
+				console.log(`🌐 Making API request for "${loc}"...`);
 				const res = await fetch(url, { headers: ZILLOW_HEADERS });
-				if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+
+				if (!res.ok) {
+					console.log(
+						`❌ API error for "${loc}": HTTP ${res.status} ${res.statusText}`,
+					);
+					throw new Error(`HTTP ${res.status} ${res.statusText}`);
+				}
+
 				const data = await res.json();
+				const propsCount = data?.props?.length ?? 0;
+				console.log(`✅ Retrieved ${propsCount} properties for "${loc}"`);
 
 				const items: PropertyDraft[] = (data?.props ?? []).map((p: any) => ({
 					source: PropertySource.ZILLOW,
@@ -85,13 +112,17 @@ export const searchZillow = createTool({
 
 				return items;
 			} catch (e: any) {
-				console.error("Zillow search failed:", e);
-				// Surface a concise error for the orchestrator; don't throw unless you want the hub to fail fast
+				console.error(`❌ Zillow search failed for "${loc}":`, e.message);
 				return [];
 			}
 		});
 
+		console.log("⏳ Waiting for all location searches to complete...");
 		const all = (await Promise.all(requests)).flat();
+		console.log(
+			`📊 Raw results: ${all.length} total properties before deduplication`,
+		);
+
 		const byId = new Map<string, PropertyDraft>();
 		for (const item of all) {
 			const key =
@@ -101,6 +132,10 @@ export const searchZillow = createTool({
 
 		const limit = Math.max(1, Math.min(paging?.limit ?? 20, 100));
 		const listings = Array.from(byId.values()).slice(0, limit);
+
+		console.log(
+			`✨ Zillow search complete: ${listings.length} unique properties (limit: ${limit})`,
+		);
 
 		return { listings };
 	},

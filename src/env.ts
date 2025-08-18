@@ -9,7 +9,6 @@ export const env = createEnv({
 		RAPIDAPI_KEY: z.string().min(1),
 		LEBONCOIN_API_KEY: z.string().min(1),
 		GOOGLE_MAPS_KEY: z.string().min(1),
-		BING_SEARCH_KEY: z.string().min(1),
 	},
 
 	client: {

@@ -1,9 +1,8 @@
 import { env } from "@/env";
 import { AgentBuilder } from "@iqai/adk";
 import dedent from "dedent";
-
 import { createCraigslistAgent } from "./craiglist-agent";
-import { createLeboncoinAgent } from "./leboncoin-agent";
+// import { createLeboncoinAgent } from "./leboncoin-agent";
 import { createRightmoveAgent } from "./right-move-agent";
 import { createAddPropertiesTool } from "./tools/add-properties";
 import { createWebFallbackAgent } from "./web-search-agent";
@@ -12,14 +11,13 @@ import { createZillowAgent } from "./zillow-agent";
 type HubOptions = { isRunningTest?: boolean };
 
 export const createDiscoveryHubAgent = async (opts: HubOptions = {}) => {
-	const [craigslist, zillow, rightmove, leboncoin, webFallback] =
-		await Promise.all([
-			createCraigslistAgent(),
-			createZillowAgent(),
-			createRightmoveAgent(),
-			createLeboncoinAgent(),
-			createWebFallbackAgent(),
-		]);
+	const [craiglist, zillow, rightmove, webFallback] = await Promise.all([
+		createCraigslistAgent(),
+		createZillowAgent(),
+		createRightmoveAgent(),
+		// createLeboncoinAgent(),
+		createWebFallbackAgent(),
+	]);
 
 	const addProperties = createAddPropertiesTool({
 		dryRun: !!opts.isRunningTest,
@@ -35,7 +33,7 @@ export const createDiscoveryHubAgent = async (opts: HubOptions = {}) => {
 
       **Your role**
       - Understand what the user is looking for (locations, budget, bedrooms, type of property).
-      - Use the available search tools (Craigslist, Zillow, Rightmove, Leboncoin, Web Search) to find matching listings.
+      - Use the available search tools (Craigslist, Zillow, Rightmove, Web Search) to find matching listings.
       - Merge and clean up results so the user doesn’t see duplicates.
       - Store them through the add_properties tool (unless in dry-run mode).
       - Show the user a short, clear summary with a few example listings.
@@ -52,7 +50,7 @@ export const createDiscoveryHubAgent = async (opts: HubOptions = {}) => {
       - Do not mention tools, databases, or internal details.
       - Only return what the sources provide — don’t invent prices or locations.
     `)
-		.asParallel([craigslist, zillow, rightmove, leboncoin, webFallback])
+		.asParallel([zillow, craiglist, rightmove, webFallback])
 		.withTools(addProperties)
 		.build();
 

@@ -147,7 +147,7 @@ export default async function DiscoveryPage() {
 								<div className="flex items-center justify-center gap-3 pt-2">
 									<ScanControls />
 									<Button variant="outline" asChild>
-										<Link href="/discovery">Explore later</Link>
+										<Link href="/">Explore later</Link>
 									</Button>
 								</div>
 
