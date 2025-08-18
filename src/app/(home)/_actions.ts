@@ -62,15 +62,19 @@ export const getUser = async () => {
 export const updateProfileAction = authActionClient
 	.schema(profileSchema)
 	.action(async ({ parsedInput, ctx: { address } }) => {
-		const wallet = address.toLowerCase();
+		const wallet = address;
 		const { firstName, lastName, email } = parsedInput;
 		const name =
 			[firstName, lastName].filter(Boolean).join(" ").trim() || undefined;
 
-		const user = await prisma.user.upsert({
+		const existingUser = await prisma.user.findUnique({ where: { wallet } });
+		if (!existingUser) {
+			throw new Error("User not found. Please connect your wallet first.");
+		}
+
+		const user = await prisma.user.update({
 			where: { wallet },
-			update: { name, email },
-			create: { wallet, name, email },
+			data: { name, email },
 			select: { id: true, wallet: true, name: true, email: true },
 		});
 

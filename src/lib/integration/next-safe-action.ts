@@ -33,5 +33,5 @@ export const authActionClient = actionClient.use(async ({ next }) => {
 		throw new ActionError("🚨 User not authorized! Please login to proceed.");
 	}
 
-	return next({ ctx: { token, address } });
+	return next({ ctx: { token, address: address.toLowerCase() } });
 });

@@ -28,8 +28,10 @@ import {
 	MapPin,
 	Palette,
 	Settings,
+	Shield,
 	Target,
 	User,
+	Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -120,7 +122,11 @@ export function SettingsDialog({
 							>
 								<ScrollArea className="h-full px-6">
 									<div className="py-4 space-y-6 pb-8">
-										<AccountTab closeModal={onOpenChange} />
+										{user ? (
+											<AccountTab closeModal={onOpenChange} user={user} />
+										) : (
+											<AccountLockedView setSettingsModal={onOpenChange} />
+										)}
 									</div>
 								</ScrollArea>
 							</TabsContent>
@@ -275,6 +281,75 @@ function InvestmentLockedView({
 					<p>
 						You can disconnect anytime. No approvals or signatures required for
 						viewing.
+					</p>
+				</CardContent>
+			</Card>
+		</div>
+	);
+}
+
+export function AccountLockedView({
+	setSettingsModal,
+}: { setSettingsModal: (isOpen: boolean) => void }) {
+	const path = usePathname();
+
+	return (
+		<div className="grid gap-6 md:grid-cols-5">
+			<Card className="md:col-span-3 relative overflow-hidden">
+				<div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
+				<CardHeader>
+					<div className="flex items-center gap-3">
+						<div className="rounded-2xl p-2 bg-primary/10 text-primary ring-1 ring-primary/20">
+							<User className="w-5 h-5" />
+						</div>
+						<div>
+							<CardTitle>Unlock your account settings</CardTitle>
+							<CardDescription>
+								Connect your wallet to manage your profile & security
+							</CardDescription>
+						</div>
+					</div>
+				</CardHeader>
+				<CardContent className="space-y-6">
+					<ul className="grid sm:grid-cols-2 gap-3 text-sm text-muted-foreground">
+						<li className="flex items-center gap-2">
+							<Wallet className="w-4 h-4" />
+							Profile & email info
+						</li>
+						<li className="flex items-center gap-2">
+							<Shield className="w-4 h-4" />
+							Security & privacy controls
+						</li>
+					</ul>
+
+					<div className="flex flex-wrap items-center gap-3">
+						<Link
+							href={`/login?from=${path}`}
+							onClick={() => setSettingsModal(false)}
+							className={cn(buttonVariants({ class: "cursor-pointer" }))}
+						>
+							Connect wallet
+						</Link>
+						<span className="text-xs text-muted-foreground">
+							We never move funds. Connection only verifies ownership.
+						</span>
+					</div>
+				</CardContent>
+			</Card>
+
+			<Card className="md:col-span-2">
+				<CardHeader>
+					<CardTitle className="text-base">Why connect?</CardTitle>
+					<CardDescription>Access your account controls</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-3 text-sm text-muted-foreground">
+					<p>
+						Once connected, you can update your profile info, manage 2FA, and
+						control how your data is used.
+					</p>
+					<p>
+						Disconnect anytime. No approvals or transactions are required just
+						to manage your settings.
 					</p>
 				</CardContent>
 			</Card>
