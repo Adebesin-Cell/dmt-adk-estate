@@ -14,10 +14,10 @@ import {
 	Star,
 	Target,
 	TrendingUp,
-	Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PropertyCard } from "./_components/property-card";
 import { ScanControls } from "./_components/scan-control";
 
 export default async function DiscoveryPage() {
@@ -25,7 +25,7 @@ export default async function DiscoveryPage() {
 	if (!address || !token) redirect("/login?from=/discovery");
 
 	const user = await prisma.user.findUnique({
-		where: { wallet: address },
+		where: { wallet: address.toLowerCase() },
 		include: { preferences: true },
 	});
 
@@ -39,11 +39,12 @@ export default async function DiscoveryPage() {
 	if (pref?.currency) where.currency = pref.currency;
 
 	const properties = await prisma.property.findMany({
-		where,
 		include: { analyses: { orderBy: { createdAt: "desc" }, take: 1 } },
 		orderBy: { createdAt: "desc" },
 		take: 24,
 	});
+
+	console.log("properties", JSON.stringify(properties[0], null, 2));
 
 	return (
 		<div className="p-6 max-w-5xl mx-auto space-y-8 min-h-screen">
@@ -66,7 +67,7 @@ export default async function DiscoveryPage() {
 			<Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
 				<CardHeader>
 					<CardTitle className="text-foreground flex items-center gap-2">
-						<Zap className="w-5 h-5 text-primary" />
+						<TrendingUp className="w-5 h-5 text-primary" />
 						Autonomous AI Investment Workflow
 					</CardTitle>
 				</CardHeader>
@@ -144,15 +145,78 @@ export default async function DiscoveryPage() {
 									</Badge>
 								</div>
 
-								<div className="flex items-center justify-center gap-3 pt-2">
-									<ScanControls />
+								<div className="mt-4 text-left mx-auto max-w-sm space-y-3">
+									<div className="flex items-start gap-3">
+										<div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center mt-0.5">
+											<Search className="w-3.5 h-3.5 text-primary" />
+										</div>
+										<div>
+											<div className="text-sm font-medium text-foreground">
+												1. Scan the market
+											</div>
+											<div className="text-xs text-muted-foreground">
+												Use the{" "}
+												<span className="font-medium">Scan for Properties</span>{" "}
+												button above to search based on your preferences.
+											</div>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center mt-0.5">
+											<BarChart3 className="w-3.5 h-3.5 text-primary" />
+										</div>
+										<div>
+											<div className="text-sm font-medium text-foreground">
+												2. Analyze with AI
+											</div>
+											<div className="text-xs text-muted-foreground">
+												Open any card and choose{" "}
+												<span className="font-medium">Analyze with AI</span> for
+												ROI, yield, and cap rate.
+											</div>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center mt-0.5">
+											<Star className="w-3.5 h-3.5 text-primary" />
+										</div>
+										<div>
+											<div className="text-sm font-medium text-foreground">
+												3. Save & compare
+											</div>
+											<div className="text-xs text-muted-foreground">
+												Shortlist promising deals and compare scores
+												side-by-side.
+											</div>
+										</div>
+									</div>
+
+									<div className="flex items-start gap-3">
+										<div className="w-6 h-6 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center mt-0.5">
+											<CheckCircle className="w-3.5 h-3.5 text-primary" />
+										</div>
+										<div>
+											<div className="text-sm font-medium text-foreground">
+												4. Propose & execute
+											</div>
+											<div className="text-xs text-muted-foreground">
+												Move winners into proposals and proceed to execution
+												when ready.
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<div className="flex items-center justify-center pt-2">
 									<Button variant="outline" asChild>
 										<Link href="/">Explore later</Link>
 									</Button>
 								</div>
 
 								<div className="text-xs text-muted-foreground">
-									Pro tip: set your budget & locations to improve results.
+									Pro tip: set your budget &amp; locations to improve results.
 								</div>
 							</div>
 						</div>
@@ -160,152 +224,11 @@ export default async function DiscoveryPage() {
 				</Card>
 			) : (
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-					{properties.map((p) => {
-						const latest = (p.analyses?.[0]?.data ??
-							null) as AnalysisData | null;
-						const score = latest?.score ?? latest?.aiScore;
-						const yieldPct =
-							latest?.yield ?? latest?.grossYield ?? latest?.netYield;
-						const capRate = latest?.capRate;
-						const meta = (p.metadata ?? null) as PropertyMetadata | null;
-
-						return (
-							<Card
-								key={p.id}
-								className="bg-card border-border hover:border-primary/30 transition-all group hover:shadow-lg"
-							>
-								<CardHeader className="p-5 pb-2">
-									<div className="flex items-start justify-between gap-3">
-										<div>
-											<h3 className="text-foreground font-semibold text-lg">
-												{p.address ?? "Untitled Property"}
-											</h3>
-											<div className="flex items-center gap-2 text-muted-foreground mt-1">
-												<MapPin className="w-4 h-4" />
-												<span className="text-sm">
-													{[p.city, p.country].filter(Boolean).join(", ") ||
-														"—"}
-												</span>
-											</div>
-										</div>
-										{typeof score === "number" && (
-											<Badge
-												className={`border-0 ${
-													score >= 90
-														? "bg-green-600 text-white"
-														: score >= 80
-															? "bg-blue-600 text-white"
-															: score >= 70
-																? "bg-yellow-600 text-white"
-																: "bg-red-600 text-white"
-												}`}
-											>
-												<Star className="w-3 h-3 mr-1" />
-												{score}
-											</Badge>
-										)}
-									</div>
-								</CardHeader>
-
-								<CardContent className="p-5 space-y-5">
-									<div className="grid grid-cols-3 gap-4">
-										<div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
-											<div className="text-primary font-semibold">
-												{formatMoney(p.priceMinor, p.currency)}
-											</div>
-											<div className="text-muted-foreground text-xs">
-												Purchase
-											</div>
-										</div>
-										<div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
-											<div className="text-primary font-semibold">
-												{yieldPct != null ? `${yieldPct}%` : "—"}
-											</div>
-											<div className="text-muted-foreground text-xs">Yield</div>
-										</div>
-										<div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
-											<div className="text-primary font-semibold">
-												{capRate != null ? `${capRate}%` : "—"}
-											</div>
-											<div className="text-muted-foreground text-xs">
-												Cap Rate
-											</div>
-										</div>
-									</div>
-
-									<div className="flex items-center justify-between text-sm text-muted-foreground p-3 bg-muted/30 rounded-lg">
-										<div className="flex items-center gap-2">
-											<Home className="w-4 h-4" />
-											<span>
-												{meta?.bedrooms ?? "—"} BR / {meta?.bathrooms ?? "—"} BA
-											</span>
-										</div>
-										<div className="flex items-center gap-1">
-											<span>{meta?.sqm ? `${meta.sqm} m²` : "—"}</span>
-										</div>
-									</div>
-
-									<div className="flex gap-3">
-										<Button
-											asChild
-											className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
-										>
-											<Link href={`/analysis/${p.id}`}>
-												<BarChart3 className="w-4 h-4 mr-2" />
-												Analyze with AI
-											</Link>
-										</Button>
-
-										{p.url ? (
-											<Button
-												variant="outline"
-												asChild
-												className="flex-1 border-border hover:bg-primary/10"
-											>
-												<Link href={p.url} target="_blank" rel="noreferrer">
-													View Listing
-												</Link>
-											</Button>
-										) : (
-											<Button variant="outline" disabled className="flex-1">
-												View Listing
-											</Button>
-										)}
-									</div>
-								</CardContent>
-							</Card>
-						);
-					})}
+					{properties.map((p) => (
+						<PropertyCard key={p.id} property={p} />
+					))}
 				</div>
 			)}
 		</div>
 	);
-}
-
-type PropertyMetadata = {
-	bedrooms?: number;
-	bathrooms?: number;
-	sqm?: number;
-	images?: string[];
-	type?: string;
-};
-
-type AnalysisData = {
-	score?: number;
-	aiScore?: number;
-	yield?: number;
-	grossYield?: number;
-	netYield?: number;
-	capRate?: number;
-};
-
-function formatMoney(minor?: number | null, currency?: Currency | null) {
-	if (minor == null) return "—";
-	const major = minor / 100;
-	const locale = "en-US";
-	const code = currency ?? "EUR";
-	return new Intl.NumberFormat(locale, {
-		style: "currency",
-		currency: code,
-	}).format(major);
 }

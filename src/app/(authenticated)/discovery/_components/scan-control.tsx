@@ -3,19 +3,38 @@
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { startMarketScan } from "../_actions";
 
 export function ScanControls() {
-	const [status, setStatus] = useState<"standby" | "executing">("standby");
+	const router = useRouter();
+	const toastId = "scan-market";
 
-	const { execute, status: execStatus } = useAction(startMarketScan, {
-		onExecute: () => setStatus("executing"),
-		onSuccess: () => {},
-		onError: () => setStatus("standby"),
+	const { execute, status } = useAction(startMarketScan, {
+		onExecute: () => {
+			toast.loading("Scanning the market…", { id: toastId });
+		},
+		onSuccess: (res) => {
+			const { data } = res;
+			if (!data) {
+				toast.error("Failed to start scan", { id: toastId });
+				return;
+			}
+			if (data.ok) {
+				toast.success("Scan started", { id: toastId });
+				router.refresh();
+			}
+		},
+		onError: (err) => {
+			toast.error(
+				err.error.serverError ?? "Something went wrong, please try again.",
+				{ id: toastId },
+			);
+		},
 	});
 
-	const disabled = execStatus === "executing" || status === "executing";
+	const isExecuting = status === "executing";
 
 	return (
 		<div className="flex items-center gap-4">
@@ -26,22 +45,23 @@ export function ScanControls() {
 				<div className="flex items-center gap-2">
 					<div
 						className={`w-2 h-2 rounded-full ${
-							status === "executing" ? "bg-amber-500" : "bg-emerald-500"
+							isExecuting ? "bg-amber-500" : "bg-emerald-500"
 						}`}
+						aria-hidden
 					/>
-					<span className="text-xs text-muted-foreground">
-						{status === "executing" ? "Executing" : "Standing by"}
+					<span className="text-xs text-muted-foreground" aria-live="polite">
+						{isExecuting ? "Executing" : "Standing by"}
 					</span>
 				</div>
 			</div>
 
 			<Button
 				className="bg-primary text-primary-foreground font-medium"
-				disabled={disabled}
+				disabled={isExecuting}
 				onClick={() => execute()}
 			>
 				<Search className="w-4 h-4 mr-2" />
-				{status === "executing" ? "Scanning..." : "Scan for Properties"}
+				{isExecuting ? "Scanning..." : "Scan for Properties"}
 			</Button>
 		</div>
 	);

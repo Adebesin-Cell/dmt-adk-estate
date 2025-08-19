@@ -26,6 +26,24 @@ export const createDiscoveryHubAgent = async () => {
 
       The agent’s purpose is to give the user a fast, unified view of available properties,
       without exposing source details or technical internals.
+
+			CRITICAL RESPONSE FORMAT:
+				Your response must contain both:
+				1. User-friendly summary of what was found
+				2. Raw listings data in a clearly marked section that the orchestrator can extract
+
+				Example response format:
+				"Search completed! Found 45 listings across 3 sources:
+				- Craigslist: 12 listings
+				- Zillow: 28 listings
+				- Rightmove: 5 listings
+
+				=== LISTINGS_DATA_START ===
+				[all full listings data from all agents]
+				=== LISTINGS_DATA_END ===
+				"
+
+				The orchestrator needs to extract the listings data between the markers to persist to database.
     `,
 		subAgents: [zillow, craigslist, rightmove, leboncoin, webFallback],
 	});
