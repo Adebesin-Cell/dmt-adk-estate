@@ -44,7 +44,7 @@ export const createOrchestratorAgent = async (
 		prefs.currency === "USD" ? "$" : prefs.currency === "GBP" ? "£" : "€";
 
 	const { runner } = await AgentBuilder.create("align_orchestrator")
-		.withModel(env.LLM_MODEL)
+		.withModel("gpt-4.1-mini")
 		.withDescription(
 			"Top-level orchestrator: decides user intent and can persist results.",
 		)
