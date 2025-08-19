@@ -83,7 +83,9 @@ export async function POST(req: NextRequest) {
 
 	const { runner } = await createInvestmentAnalysisAgent();
 
-	const output = await runner.ask(stringifiedInput);
+	const output = await runner.ask(
+		`Property:\n${stringifiedInput}\n\nPlease return a complete analysis on the property.`,
+	);
 
 	if (!output) {
 		return NextResponse.json(

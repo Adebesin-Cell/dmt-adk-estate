@@ -57,5 +57,9 @@ export const runAnalysis = authActionClient
 			throw new Error(err || "Failed to run analysis");
 		}
 
-		return { ok: true, analyzedAt: new Date().toISOString() };
+		const data = await res.json();
+
+		const analysisId = data.analysisId as string;
+
+		return { ok: true, analyzedAt: new Date().toISOString(), analysisId };
 	});

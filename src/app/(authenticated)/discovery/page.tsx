@@ -3,13 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/integration/prisma";
 import { getAuth } from "@everipedia/iq-login";
-import type { Currency, Prisma } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import {
 	ArrowRight,
 	BarChart3,
 	CheckCircle,
-	Home,
-	MapPin,
 	Search,
 	Star,
 	Target,
@@ -43,8 +41,6 @@ export default async function DiscoveryPage() {
 		orderBy: { createdAt: "desc" },
 		take: 24,
 	});
-
-	console.log("properties", JSON.stringify(properties[0], null, 2));
 
 	return (
 		<div className="p-6 max-w-5xl mx-auto space-y-8 min-h-screen">

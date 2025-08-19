@@ -214,171 +214,193 @@ export const AnalysisInputSchema = z
 
 export type AnalysisInput = z.infer<typeof AnalysisInputSchema>;
 
-export const AnalysisProjectionYearSchema = z
-	.object({
-		year: z
-			.number()
-			.int()
-			.min(1)
-			.max(5)
-			.describe("Projection year number (1..5)."),
-		income: z
-			.number()
-			.describe(
-				"Annual gross income in *major* units (after vacancy if modeled that way).",
-			),
-		expenses: z
-			.number()
-			.describe("Annual operating expenses in *major* units."),
-		net: z
-			.number()
-			.describe(
-				"Annual net. If 'includeDebtServiceInNet' is true, this is cashflow after debt; otherwise NOI (pre-debt).",
-			),
-		roiPct: z
-			.number()
-			.describe(
-				"Cumulative ROI percentage by the end of the given year (e.g., 14.2 = 14.2%).",
-			),
-	})
-	.describe("One row in the 5-year financial projection.");
+export const AnalysisProjectionYearSchema = z.object({
+	year: z
+		.number()
+		.int()
+		.min(1)
+		.max(5)
+		.describe("Projection year number (1..5)."),
+	income: z
+		.number()
+		.describe("Annual effective income (after vacancy) in major units."),
+	expenses: z.number().describe("Annual operating expenses in major units."),
+	net: z
+		.number()
+		.describe(
+			"Annual net. If 'includeDebtServiceInNet' is true, this is cashflow after debt; otherwise NOI (pre-debt).",
+		),
+	roiPct: z
+		.number()
+		.describe(
+			"Cumulative ROI percentage by end of the given year (e.g., 14.2 = 14.2%).",
+		),
+});
 
+const FinancingSchema = z.object({
+	ltvPct: z
+		.number()
+		.min(0)
+		.max(100)
+		.default(70)
+		.describe("Loan-to-Value percentage."),
+	ratePct: z
+		.number()
+		.min(0)
+		.max(100)
+		.default(6)
+		.describe("Annual interest rate percentage."),
+	termYears: z
+		.number()
+		.int()
+		.positive()
+		.default(30)
+		.describe("Amortization term in years."),
+	downPaymentPct: z
+		.number()
+		.min(0)
+		.max(100)
+		.default(30)
+		.describe("Down payment as percentage of price."),
+	closingCostsPct: z
+		.number()
+		.min(0)
+		.max(100)
+		.default(2)
+		.describe("Closing costs as percentage of price."),
+	includeDebtServiceInNet: z
+		.boolean()
+		.default(false)
+		.describe("If true, projections 'net' includes debt service (cashflow)."),
+});
+
+/** Non-null assumptions with defaults */
+const AssumptionsSchema = z.object({
+	rentAnnual: z
+		.number()
+		.describe("Annual gross rent in major units used for calculations."),
+	vacancyRatePct: z
+		.number()
+		.default(5)
+		.describe("Vacancy allowance percentage (default 5)."),
+	expenseRatePct: z
+		.number()
+		.default(20)
+		.describe("Operating expenses as % of effective gross income."),
+	rentGrowthPct: z
+		.number()
+		.default(4)
+		.describe("Assumed annual rent growth percentage."),
+	expenseGrowthPct: z
+		.number()
+		.default(3)
+		.describe("Assumed annual expense growth percentage."),
+	appreciationPct: z
+		.number()
+		.default(3)
+		.describe("Assumed annual property value appreciation percentage."),
+	financing: FinancingSchema.describe(
+		"Financing assumptions used to compute levered cashflows.",
+	),
+});
+
+const MarketRiskSchema = z.object({
+	market: z
+		.enum(["Low", "Medium", "High"])
+		.describe("Macro/market cycle risk."),
+	location: z
+		.enum(["Very Low", "Low", "Medium", "High"])
+		.describe("Neighborhood/location-specific risk."),
+	regulatory: z
+		.enum(["Low", "Medium", "High"])
+		.describe("Regulatory/tenant-law risk."),
+	liquidity: z
+		.enum(["Low", "Medium", "High"])
+		.describe("Ease of selling/refinancing."),
+});
+
+const MarketAnalysisSchema = z.object({
+	trend: z
+		.enum(["Strong Growth", "Stable", "Declining"])
+		.describe("Market trend."),
+	priceGrowthYoYPct: z
+		.number()
+		.describe("YoY price growth percentage for the market."),
+	risk: MarketRiskSchema.describe("Risk breakdown."),
+});
+
+const MetricsSchema = z.object({
+	purchasePrice: z.number().describe("Purchase price in major units."),
+	currency: CurrencyEnum.describe("Currency used for all monetary outputs."),
+	grossYieldPct: z
+		.number()
+		.describe("Gross yield = Annual Rent / Purchase Price * 100."),
+	netYieldPct: z
+		.number()
+		.describe(
+			"Net yield = (Annual Rent - Operating Expenses) / Purchase Price * 100 (pre-debt).",
+		),
+	capRatePct: z
+		.number()
+		.describe("Cap rate = NOI / Purchase Price * 100 (pre-debt)."),
+	roiPct: z
+		.number()
+		.describe(
+			"Headline cumulative ROI percentage at Year 5 from the projection (e.g., 42.7 = 42.7%).",
+		),
+	rentVsBuy: z
+		.enum(["RENT", "BUY", "NEUTRAL"])
+		.describe("Rent vs buy recommendation."),
+	flipPotential: z
+		.enum(["Good", "Fair", "Weak"])
+		.describe("Flip attractiveness."),
+});
+
+/** Data source metadata and warnings must always be present */
+const DataSourceSchema = z.object({
+	priceSource: z.string().describe("Where price data came from."),
+	rentSource: z.string().describe("How rent was estimated."),
+	hasComps: z.boolean().describe("Whether rental comps were provided."),
+});
+
+/** FINAL: Non-null, defaulted, schema-safe analysis output */
 export const AnalysisOutputSchema = z
 	.object({
-		version: z
-			.string()
-			.default("1.0")
-			.describe("Schema/version marker for analysis output."),
-		metrics: z
-			.object({
-				purchasePrice: z
-					.number()
-					.describe("Purchase price in *major* units (priceMinor/100)."),
-				currency: CurrencyEnum.describe(
-					"Currency used for all monetary outputs.",
-				),
-				grossYieldPct: z
-					.number()
-					.describe("Gross yield = Annual Rent / Purchase Price * 100."),
-				netYieldPct: z
-					.number()
-					.describe(
-						"Net yield = (Annual Rent - Operating Expenses) / Purchase Price * 100 (pre-debt).",
-					),
-				capRatePct: z
-					.number()
-					.describe("Cap rate = NOI / Purchase Price * 100 (pre-debt)."),
-				rentVsBuy: z
-					.enum(["RENT", "BUY", "NEUTRAL"])
-					.describe("Recommendation from rent-vs-buy perspective."),
-				flipPotential: z
-					.enum(["Good", "Fair", "Weak"])
-					.describe("Heuristic assessment of flipping attractiveness."),
-			})
-			.describe("Headline investment metrics for quick comparison."),
-		assumptions: z
-			.object({
-				rentAnnual: z
-					.number()
-					.describe(
-						"Annual gross rent in *major* units used for calculations.",
-					),
-				vacancyRatePct: z
-					.number()
-					.default(5)
-					.describe("Vacancy allowance percentage (default 5)."),
-				expenseRatePct: z
-					.number()
-					.default(20)
-					.describe("Operating expenses as % of effective gross income."),
-				rentGrowthPct: z
-					.number()
-					.default(4)
-					.describe("Assumed annual rent growth percentage."),
-				expenseGrowthPct: z
-					.number()
-					.default(3)
-					.describe("Assumed annual expense growth percentage."),
-				appreciationPct: z
-					.number()
-					.default(3)
-					.describe("Assumed annual property value appreciation percentage."),
-				financing: z
-					.object({
-						ltvPct: z.number().optional().describe("Loan-to-Value percentage."),
-						ratePct: z
-							.number()
-							.optional()
-							.describe("Annual interest rate percentage."),
-						termYears: z
-							.number()
-							.optional()
-							.describe("Amortization term in years."),
-						downPaymentPct: z
-							.number()
-							.optional()
-							.describe("Down payment as percentage of price."),
-						closingCostsPct: z
-							.number()
-							.optional()
-							.describe("Closing costs as percentage of price."),
-						includeDebtServiceInNet: z
-							.boolean()
-							.optional()
-							.describe(
-								"If true, projections 'net' includes debt service (cashflow).",
-							),
-					})
-					.optional()
-					.describe("Financing assumptions used to compute levered cashflows."),
-			})
-			.describe("All key assumptions used for metrics and projections."),
+		version: z.string().default("1.0").describe("Schema/version marker."),
+		metrics: MetricsSchema.describe("Headline investment metrics."),
+		assumptions: AssumptionsSchema.describe("Assumptions used."),
 		projection5y: z
 			.array(AnalysisProjectionYearSchema)
 			.length(5)
 			.describe(
-				"Five annual rows with income, expenses, net result, and cumulative ROI%.",
+				"Exactly five annual rows with income, expenses, net, and cumulative ROI%.",
 			),
-		marketAnalysis: z
-			.object({
-				trend: z
-					.enum(["Strong Growth", "Stable", "Declining"])
-					.describe("High-level trend of the subject market."),
-				priceGrowthYoYPct: z
-					.number()
-					.describe("Year-over-year price growth percentage for the market."),
-				risk: z
-					.object({
-						market: z
-							.enum(["Low", "Medium", "High"])
-							.describe("Macro/market cycle risk."),
-						location: z
-							.enum(["Very Low", "Low", "Medium", "High"])
-							.describe("Neighborhood/location-specific risk."),
-						regulatory: z
-							.enum(["Low", "Medium", "High"])
-							.describe("Regulatory/short-term rental/tenant law risk."),
-						liquidity: z
-							.enum(["Low", "Medium", "High"])
-							.describe("Ease of selling/refinancing in this market."),
-					})
-					.describe("Risk breakdown relevant to the investment."),
-			})
-			.describe("Concise market context and risk assessment."),
+		marketAnalysis: MarketAnalysisSchema.describe(
+			"Market context and risk assessment.",
+		),
 		highlights: z
 			.array(z.string())
-			.default([])
+			.min(0)
+			.max(8)
 			.describe(
-				"Bullet points for UI chips (e.g., 'High Yield', 'City Center').",
+				"0–8 bullet tags for UI chips (e.g., 'High Yield', 'City Center').",
 			),
 		memoMarkdown: z
 			.string()
-			.describe(
-				"Investment memo in Markdown: executive summary, highlights, risks, and rationale.",
-			),
+			.min(1)
+			.describe("Comprehensive investment memo in Markdown."),
+		status: z
+			.enum(["SUCCESS", "PARTIAL", "ERROR"])
+			.default("SUCCESS")
+			.describe("Analysis completion status."),
+		warnings: z
+			.array(z.string())
+			.default([])
+			.describe("Notes on missing data/assumptions."),
+		dataSource: DataSourceSchema.describe("Metadata about data sources used."),
 	})
 	.describe(
-		"Structured output of the investment analysis. All money values are in the property's currency.",
+		"Strict structured output of the investment analysis. All fields are required and non-null. All money values are in the property's currency.",
 	);
 
 export type AnalysisOutput = z.infer<typeof AnalysisOutputSchema>;

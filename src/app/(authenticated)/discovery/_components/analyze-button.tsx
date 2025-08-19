@@ -20,7 +20,7 @@ export function AnalyzeWithAI({ propertyId }: { propertyId: string }) {
 				return;
 			}
 			toast.success("Analysis complete", { id: toastId });
-			router.push(`/analysis/${propertyId}`);
+			router.push(`/analysis/${data.analysisId}`);
 		},
 		onError: (err) => {
 			toast.error(err.error.serverError ?? "Something went wrong.", {
