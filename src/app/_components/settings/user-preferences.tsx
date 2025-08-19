@@ -30,7 +30,7 @@ import { DollarSign, MapPin, Target, TrendingUp } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type React from "react";
 import { toast } from "sonner";
 
@@ -39,7 +39,7 @@ type Countries = Awaited<ReturnType<typeof getCountries>>;
 export type PreferencesState = {
 	budget: number[];
 	selectedGoals: Goal[];
-	selectedLocations: string[];
+	selectedLocationIds: string[];
 	risk: RiskLevel;
 };
 
@@ -57,22 +57,38 @@ type UserPreferencesProps = {
 export function UserPreferences({ locations, user }: UserPreferencesProps) {
 	const router = useRouter();
 
+	const { idToName, nameToId } = useMemo(() => {
+		const idToName = new Map<string, string>();
+		const nameToId = new Map<string, string>();
+		for (const l of locations ?? []) {
+			idToName.set(l.id, l.name);
+			nameToId.set(normalizeName(l.name), l.id);
+		}
+		return { idToName, nameToId };
+	}, [locations]);
+
 	const pref = user.preferences;
 	const initialBudgetMax =
 		typeof pref?.budgetMax === "number" ? pref?.budgetMax : 300000;
 
+	const initialSelectedIds = useMemo(() => {
+		const namesFromDb = pref?.locations ?? [];
+		const ids = namesFromDb
+			.map((nm) => nameToId.get(normalizeName(nm)))
+			.filter((v): v is string => Boolean(v));
+		return ids;
+	}, [pref?.locations, nameToId]);
+
 	const [preferences, setPreferences] = useState<PreferencesState>({
 		budget: [initialBudgetMax],
 		selectedGoals: (pref?.goals as Goal[]) ?? ["CASHFLOW"],
-		selectedLocations: pref?.locations?.map((x) => x.toLowerCase()) ?? [],
+		selectedLocationIds: initialSelectedIds,
 		risk: pref?.risk ?? "MODERATE",
 	});
 
 	const { execute, status } = useAction(savePreferences, {
 		onSuccess: (res) => {
-			if (res?.data?.success) {
-				router.push("/discovery");
-			}
+			if (res?.data?.success) router.push("/discovery");
 		},
 		onError: (e) => {
 			toast.error(
@@ -92,15 +108,25 @@ export function UserPreferences({ locations, user }: UserPreferencesProps) {
 		}));
 	};
 
-	const toggleLocation = (rawId: string) => {
-		const id = rawId.toLowerCase();
-		setPreferences((p) => ({
-			...p,
-			selectedLocations: p.selectedLocations.includes(id)
-				? p.selectedLocations.filter((x) => x !== id)
-				: [...p.selectedLocations, id],
-		}));
+	const toggleLocation = (id: string) => {
+		setPreferences((p) => {
+			const exists = p.selectedLocationIds.includes(id);
+			return {
+				...p,
+				selectedLocationIds: exists
+					? p.selectedLocationIds.filter((x) => x !== id)
+					: [...p.selectedLocationIds, id],
+			};
+		});
 	};
+
+	const selectedLocationNames = useMemo(
+		() =>
+			preferences.selectedLocationIds
+				.map((id) => idToName.get(id))
+				.filter((v): v is string => Boolean(v)),
+		[preferences.selectedLocationIds, idToName],
+	);
 
 	const goals: InvestmentGoal[] = [
 		{
@@ -135,7 +161,7 @@ export function UserPreferences({ locations, user }: UserPreferencesProps) {
 			currency: (pref?.currency ?? "EUR") as Currency,
 			risk: preferences.risk,
 			goals: preferences.selectedGoals,
-			locations: preferences.selectedLocations,
+			locations: selectedLocationNames,
 		});
 	};
 
@@ -161,11 +187,13 @@ export function UserPreferences({ locations, user }: UserPreferencesProps) {
 
 				<PreferredLocationsCard
 					allLocations={locations ?? []}
-					selectedLocations={preferences.selectedLocations}
-					onToggleLocation={toggleLocation}
+					selectedLocationIds={preferences.selectedLocationIds}
+					onToggleLocation={toggleLocation} // id-based
 				/>
 
 				<ProfileSummaryCard
+					// pass names to summary for badges
+					selectedLocationNames={selectedLocationNames}
 					preferences={preferences}
 					goals={goals}
 					goalBadgeClasses={goalBadgeClasses}
@@ -325,12 +353,12 @@ function InvestmentGoalsCard({
 
 function PreferredLocationsCard({
 	allLocations,
-	selectedLocations,
+	selectedLocationIds,
 	onToggleLocation,
 	pageSize = 8,
 }: {
 	allLocations: NonNullable<Countries["countries"]>;
-	selectedLocations: string[];
+	selectedLocationIds: string[];
 	onToggleLocation: (id: string) => void;
 	pageSize?: number;
 }) {
@@ -356,8 +384,7 @@ function PreferredLocationsCard({
 			<CardContent className="pb-6">
 				<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
 					{pageItems.map((loc) => {
-						const id = loc.id.toLowerCase();
-						const selected = selectedLocations.includes(id);
+						const selected = selectedLocationIds.includes(loc.id);
 						return (
 							<Button
 								key={loc.id}
@@ -365,7 +392,7 @@ function PreferredLocationsCard({
 								variant="outline"
 								aria-pressed={selected}
 								data-selected={selected ?? undefined}
-								onClick={() => onToggleLocation(id)}
+								onClick={() => onToggleLocation(loc.id)}
 								className={cn(
 									"p-3 h-auto justify-center",
 									"rounded-lg border transition-all text-center cursor-pointer border-primary/10",
@@ -416,11 +443,13 @@ function ProfileSummaryCard({
 	goals,
 	goalBadgeClasses,
 	cta,
+	selectedLocationNames,
 }: {
 	preferences: PreferencesState;
 	goals: InvestmentGoal[];
 	goalBadgeClasses: Record<Goal, string>;
 	cta: React.ReactNode;
+	selectedLocationNames: string[];
 }) {
 	return (
 		<Card className="bg-card border-border">
@@ -450,6 +479,15 @@ function ProfileSummaryCard({
 									: "Moderate"}{" "}
 							Risk
 						</Badge>
+						{selectedLocationNames.map((nm) => (
+							<Badge
+								key={nm}
+								variant="secondary"
+								className="bg-primary/10 text-primary border-primary/30"
+							>
+								{nm}
+							</Badge>
+						))}
 						{preferences.selectedGoals.map((goalId) => {
 							const goal = goals.find((g) => g.id === goalId);
 							return (
@@ -505,4 +543,8 @@ function FlagImage({
 	) : (
 		<div className={`text-2xl ${className}`}>{placeholder}</div>
 	);
+}
+
+function normalizeName(s: string) {
+	return s.trim().toLowerCase();
 }

@@ -22,6 +22,8 @@ export async function buildInitialState(address: string) {
 		});
 	}
 
+	console.log(JSON.stringify(user, null, 2));
+
 	const prefs = user.preferences;
 	return {
 		user: {

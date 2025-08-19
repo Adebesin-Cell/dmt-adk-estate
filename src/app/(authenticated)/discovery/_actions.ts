@@ -22,7 +22,6 @@ export const startMarketScan = authActionClient.action(async ({ ctx }) => {
 			"Content-Type": "application/json",
 			Cookie: await cookieHeader(),
 		},
-		cache: "no-store",
 		body: JSON.stringify({
 			query:
 				"Scan the market based on my preferences (budget, risk, locations, and yield).",
@@ -48,7 +47,6 @@ export const runAnalysis = authActionClient
 				"Content-Type": "application/json",
 				Cookie: await cookieHeader(),
 			},
-			cache: "no-store",
 			body: JSON.stringify({ propertyId: parsedInput.propertyId }),
 		});
 

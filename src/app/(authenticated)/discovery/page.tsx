@@ -39,7 +39,6 @@ export default async function DiscoveryPage() {
 	const properties = await prisma.property.findMany({
 		include: { analyses: { orderBy: { createdAt: "desc" }, take: 1 } },
 		orderBy: { createdAt: "desc" },
-		take: 24,
 	});
 
 	return (
@@ -219,7 +218,7 @@ export default async function DiscoveryPage() {
 					</CardContent>
 				</Card>
 			) : (
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
 					{properties.map((p) => (
 						<PropertyCard key={p.id} property={p} />
 					))}

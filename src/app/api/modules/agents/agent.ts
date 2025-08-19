@@ -35,6 +35,8 @@ export const createOrchestratorAgent = async (
 			? `Your preferred locations: ${prefs.locations.join(", ")}`
 			: "No preferred locations set";
 
+	console.log("locations", locationHint);
+
 	const budgetHint =
 		prefs.budgetMin || prefs.budgetMax
 			? `Your budget range: ${prefs.budgetMin ? `€${prefs.budgetMin.toLocaleString()}` : "No min"} - ${prefs.budgetMax ? `€${prefs.budgetMax.toLocaleString()}` : "No max"}`
@@ -75,7 +77,7 @@ export const createOrchestratorAgent = async (
         - If user asks for property search without location, suggest: "I can search in your preferred areas (${prefs.locations.length > 0 ? prefs.locations.join(", ") : "none set yet"}), or specify a different location."
         - Use user's budget range as defaults in searches unless they specify different amounts.
         - Always show prices in ${prefs.currency} (${currencySymbol}) unless user requests different currency.
-        - DISCOVER → search properties via discovery hub, then persist results with add_properties
+        - DISCOVER → search properties via discovery hub
         - COMPARE or MEMO → delegate to relevant subagent if available, otherwise give guidance.
         - CHAT → answer directly, can reference their preferences naturally.
 

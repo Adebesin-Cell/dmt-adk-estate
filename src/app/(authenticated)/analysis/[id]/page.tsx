@@ -1,24 +1,24 @@
-import { prisma } from "@/lib/integration/prisma";
-import { getAuth } from "@everipedia/iq-login";
-import { redirect } from "next/navigation";
-
 import {
 	type AnalysisOutput,
 	AnalysisOutputSchema,
 } from "@/app/api/modules/agents/subagents/analyse-investment-agent/_schema";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getCurrency } from "@/lib/helpers/get-currency";
+import { prisma } from "@/lib/integration/prisma";
+import { cn } from "@/lib/utils";
+import { getAuth } from "@everipedia/iq-login";
+import type { Property } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import {
 	AlertCircle,
 	ArrowLeft,
 	BarChart3,
 	Bot,
-	Building,
-	CheckCircle,
 	Code2,
 	DollarSign,
 	FileText,
@@ -28,14 +28,18 @@ import {
 	Vote,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { AddToPortfolioControls } from "./_components/add-to-portfolio";
+import { AnalysisMarkdown } from "./_components/analysis-markdown";
 import { propertyMetadataSchema } from "./_schema";
 
 export default async function AnalysisPage({
 	params,
 }: {
-	params: { id: string };
+	params: Promise<{ id: string }>;
 }) {
-	const analysisId = params.id;
+	const analysisId = (await params).id;
 
 	const { token, address } = await getAuth();
 	if (!address || !token) redirect(`/login?from=/analysis/${analysisId}`);
@@ -63,19 +67,20 @@ export default async function AnalysisPage({
 
 	return (
 		<div className="min-h-screen bg-background">
-			{/* Header */}
 			<div className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
 				<div className="max-w-6xl mx-auto p-4 md:p-6">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
-							<Button
-								variant="ghost"
-								size="sm"
-								className="hover:bg-primary/10 hover:text-primary"
+							<Link
+								href="/discovery"
+								className={cn(
+									buttonVariants({ variant: "ghost", size: "sm" }),
+									"hover:bg-primary/10 hover:text-primary",
+								)}
 							>
 								<ArrowLeft className="w-4 h-4 mr-2" />
 								Back
-							</Button>
+							</Link>
 							<div className="flex items-center gap-2 text-sm text-muted-foreground">
 								<span className="text-foreground font-medium">AI Analysis</span>
 							</div>
@@ -84,10 +89,7 @@ export default async function AnalysisPage({
 							<Badge className="bg-primary/20 text-primary border-primary/30">
 								{analysisData?.status || "ANALYZING"}
 							</Badge>
-							<Button className="bg-primary text-primary-foreground hover:bg-primary/90">
-								<CheckCircle className="w-4 h-4 mr-2" />
-								Add to Portfolio
-							</Button>
+							<AddToPortfolioControls propertyId={property.id} />
 						</div>
 					</div>
 				</div>
@@ -138,9 +140,9 @@ export default async function AnalysisPage({
 							</div>
 
 							<div className="space-y-3">
-								{/* <div className="text-3xl font-bold text-foreground">
-									{formatCurrency(property?.priceMinor ?? 0, property?.currency)}
-								</div> */}
+								<div className="text-3xl font-bold text-foreground">
+									{formatPrice(property)}
+								</div>
 
 								{metadata && (
 									<div className="text-sm text-muted-foreground">
@@ -155,7 +157,7 @@ export default async function AnalysisPage({
 									<div className="flex items-center gap-2 my-2 flex-wrap">
 										{analysisData.highlights.map((highlight, i) => (
 											<Badge
-												key={i}
+												key={`highlight-${i + 1}`}
 												className="bg-primary/20 text-primary border-primary/30 text-xs"
 											>
 												{highlight}
@@ -232,7 +234,6 @@ export default async function AnalysisPage({
 				</div>
 			)}
 
-			{/* Main Content */}
 			<div className="max-w-6xl mx-auto p-4 md:p-6">
 				<Tabs defaultValue="analysis" className="space-y-6">
 					<TabsList className="grid w-full grid-cols-3 md:grid-cols-4 bg-muted max-w-2xl">
@@ -356,7 +357,7 @@ export default async function AnalysisPage({
 																</p>
 																<ul className="mt-1 text-sm text-yellow-700 list-disc list-inside">
 																	{analysisData.warnings.map((warning, i) => (
-																		<li key={i}>{warning}</li>
+																		<li key={`warnings-${i + 1}`}>{warning}</li>
 																	))}
 																</ul>
 															</div>
@@ -485,7 +486,9 @@ export default async function AnalysisPage({
 										Investment Memo
 									</CardTitle>
 								</CardHeader>
-								<CardContent>&nbsp;</CardContent>
+								<CardContent>
+									<AnalysisMarkdown markdown={analysisData.memoMarkdown} />
+								</CardContent>
 							</Card>
 						)}
 					</TabsContent>
@@ -525,7 +528,20 @@ export default async function AnalysisPage({
 
 const formatCurrency = (amountMinor?: number, currency = "USD") => {
 	if (amountMinor === null || amountMinor === undefined) return "N/A";
-	const amount = amountMinor / 100; // Convert from minor units (cents) to major units
+	const amount = amountMinor / 100;
+	return new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency: currency,
+		minimumFractionDigits: 0,
+		maximumFractionDigits: 0,
+	}).format(amount);
+};
+
+const formatPrice = (property: Property) => {
+	const { priceMinor: amountMinor, currency } = getCurrency(property);
+
+	if (amountMinor === null || amountMinor === undefined) return "N/A";
+	const amount = amountMinor / 100;
 	return new Intl.NumberFormat("en-US", {
 		style: "currency",
 		currency: currency,

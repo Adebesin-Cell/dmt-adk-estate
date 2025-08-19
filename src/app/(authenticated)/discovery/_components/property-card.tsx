@@ -2,8 +2,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getCurrency } from "@/lib/helpers/get-currency";
-import type { Currency, Prisma } from "@prisma/client";
-import { BarChart3, Home, MapPin, Star } from "lucide-react";
+import type { Prisma, Property } from "@prisma/client";
+import { Bot, Home, MapPin, Star } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { AnalyzeWithAI } from "./analyze-button";
 
@@ -18,41 +19,53 @@ export function PropertyCard({
 	const meta = normalizeMeta(p.metadata);
 
 	return (
-		<Card className="bg-card border-border hover:border-primary/30 transition-all group hover:shadow-lg">
-			<CardHeader className="p-5 pb-2">
-				<div className="flex items-start justify-between gap-3">
-					<div>
-						<h3 className="text-foreground font-semibold text-lg">
-							{p.address ?? "Untitled Property"}
-						</h3>
-						<div className="flex items-center gap-2 text-muted-foreground mt-1">
-							<MapPin className="w-4 h-4" />
-							<span className="text-sm">
-								{[p.city, p.country].filter(Boolean).join(", ") || "—"}
-							</span>
-						</div>
-					</div>
+		<Card className="bg-card border-border pt-0 hover:border-primary/30 transition-all group hover:shadow-lg">
+			<CardHeader className="p-0 relative">
+				<div className="relative">
+					<Image
+						src={
+							meta.images?.[0] ??
+							"https://images.unsplash.com/photo-1605146769289-440113cc3d00?w=900&auto=format&fit=crop&q=60"
+						}
+						alt={p.address ?? "Property image"}
+						width={600}
+						height={400}
+						className="w-full h-64 object-cover rounded-t-lg"
+					/>
 
 					{typeof score === "number" && (
-						<Badge
-							className={`border-0 ${
-								score >= 90
-									? "bg-green-600 text-white"
-									: score >= 80
-										? "bg-blue-600 text-white"
-										: score >= 70
-											? "bg-yellow-600 text-white"
-											: "bg-red-600 text-white"
-							}`}
-						>
-							<Star className="w-3 h-3 mr-1" />
-							{score}
-						</Badge>
+						<div className="absolute top-4 left-4">
+							<Badge
+								className={`border-0 shadow-lg ${
+									score >= 90
+										? "bg-green-600 text-white"
+										: score >= 80
+											? "bg-blue-600 text-white"
+											: score >= 70
+												? "bg-yellow-600 text-white"
+												: "bg-red-600 text-white"
+								}`}
+							>
+								<Star className="w-3 h-3 mr-1" />
+								{score}
+							</Badge>
+						</div>
 					)}
 				</div>
 			</CardHeader>
 
 			<CardContent className="p-5 space-y-5">
+				<div>
+					<h3 className="text-foreground font-semibold text-lg mb-2">
+						{p.address ?? "Untitled Property"}
+					</h3>
+					<div className="flex items-center gap-2 text-muted-foreground">
+						<MapPin className="w-4 h-4" />
+						<span className="text-sm">
+							{[p.city, p.country].filter(Boolean).join(", ") || "—"}
+						</span>
+					</div>
+				</div>
 				<div className="grid grid-cols-3 gap-4">
 					<div className="text-center p-3 bg-muted/50 rounded-lg border border-border">
 						<div className="text-primary font-semibold">{formatMoney(p)}</div>
@@ -81,6 +94,27 @@ export function PropertyCard({
 					</div>
 					<div className="flex items-center gap-1">
 						<span>{meta?.sqm ? `${meta.sqm} m²` : "—"}</span>
+					</div>
+				</div>
+
+				<div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg border border-primary/20">
+					<div className="flex items-center gap-2 mb-2">
+						<div className="w-6 h-6 bg-primary/20 rounded-lg flex items-center justify-center">
+							<Bot className="w-4 h-4 text-primary" />
+						</div>
+						<h4 className="text-foreground font-medium">AI Insight</h4>
+					</div>
+					<p className="text-muted-foreground text-sm leading-relaxed mb-3">
+						This property shows strong rental yield potential in a growing
+						market. Ideal for medium to long-term investors.
+					</p>
+					<div className="bg-primary/10 p-2 rounded border border-primary/30">
+						<p className="text-xs text-foreground">
+							💡 Get complete analysis including{" "}
+							<span className="text-primary font-medium">
+								ROI projections, risk assessment, and DAO-ready proposals
+							</span>
+						</p>
 					</div>
 				</div>
 
@@ -129,13 +163,9 @@ type AnalysisData = {
 	capRate?: number;
 };
 
-type PricedEntity = {
-	priceMinor?: number | null;
-	currency?: Currency | null;
-	metadata?: any;
-};
+type PriceFields = Pick<Property, "priceMinor" | "currency">;
 
-function formatMoney(p: PricedEntity) {
+function formatMoney(p: PriceFields) {
 	const { priceMinor, currency } = getCurrency(p);
 
 	if (priceMinor === null) return "—";
@@ -162,7 +192,6 @@ function normalizeMeta(raw: any): PropertyMetadata {
 		(typeof m.baths === "number" ? m.baths : undefined) ??
 		(typeof d.baths === "number" ? d.baths : undefined);
 
-	// sqm direct or convert from sqft if present
 	const sqmDirect =
 		(typeof m.sqm === "number" ? m.sqm : undefined) ??
 		(typeof d.sqm === "number" ? d.sqm : undefined);

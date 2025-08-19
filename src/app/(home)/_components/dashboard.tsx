@@ -112,7 +112,6 @@ export function Dashboard({ user }: DashboardProps) {
 						</div>
 					) : (
 						<div className="space-y-5">
-							{/* Totals */}
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 								<Card className="bg-muted/30 border-border">
 									<CardContent className="p-4">

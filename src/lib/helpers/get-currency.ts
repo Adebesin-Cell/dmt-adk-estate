@@ -7,8 +7,7 @@ export const getCurrency = (property: PricedEntity) => {
 		property.metadata?.metadata?.priceMinor ??
 		null;
 
-	const currency =
-		property.currency ?? (property.metadata as any)?.currency ?? "EUR";
+	const currency = property.currency ?? property.metadata?.currency ?? "EUR";
 
 	return { priceMinor: minor, currency };
 };
