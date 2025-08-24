@@ -238,6 +238,44 @@ export default async function PortfolioPage() {
 					</div>
 				</CardContent>
 			</Card>
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+				{stats.map((stat) => {
+					const Icon = stat.icon as any;
+					return (
+						<Card key={stat.label} className="bg-card border-border">
+							<CardContent className="p-6">
+								<div className="flex items-center justify-between">
+									<div>
+										<p className="text-sm text-muted-foreground mb-1">
+											{stat.label}
+										</p>
+										<p className="text-2xl font-semibold text-foreground">
+											{stat.value}
+										</p>
+										<div
+											className={`flex items-center gap-1 mt-2 text-xs ${stat.trend === "up" ? "text-green-500" : "text-red-500"}`}
+										>
+											{stat.trend === "up" ? (
+												<ArrowUpRight className="w-3 h-3" />
+											) : (
+												<ArrowDownRight className="w-3 h-3" />
+											)}
+											{stat.change}
+										</div>
+									</div>
+									<div
+										className={`w-12 h-12 rounded-lg flex items-center justify-center ${stat.trend === "up" ? "bg-green-500/10" : "bg-red-500/10"}`}
+									>
+										<Icon
+											className={`w-6 h-6 ${stat.trend === "up" ? "text-green-500" : "text-red-500"}`}
+										/>
+									</div>
+								</div>
+							</CardContent>
+						</Card>
+					);
+				})}
+			</div>
 
 			{/* Main Content Tabs */}
 			<Tabs defaultValue="properties" className="space-y-6">
@@ -557,45 +595,6 @@ export default async function PortfolioPage() {
 					</div>
 				</TabsContent>
 			</Tabs>
-
-			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-				{stats.map((stat) => {
-					const Icon = stat.icon as any;
-					return (
-						<Card key={stat.label} className="bg-card border-border">
-							<CardContent className="p-6">
-								<div className="flex items-center justify-between">
-									<div>
-										<p className="text-sm text-muted-foreground mb-1">
-											{stat.label}
-										</p>
-										<p className="text-2xl font-semibold text-foreground">
-											{stat.value}
-										</p>
-										<div
-											className={`flex items-center gap-1 mt-2 text-xs ${stat.trend === "up" ? "text-green-500" : "text-red-500"}`}
-										>
-											{stat.trend === "up" ? (
-												<ArrowUpRight className="w-3 h-3" />
-											) : (
-												<ArrowDownRight className="w-3 h-3" />
-											)}
-											{stat.change}
-										</div>
-									</div>
-									<div
-										className={`w-12 h-12 rounded-lg flex items-center justify-center ${stat.trend === "up" ? "bg-green-500/10" : "bg-red-500/10"}`}
-									>
-										<Icon
-											className={`w-6 h-6 ${stat.trend === "up" ? "text-green-500" : "text-red-500"}`}
-										/>
-									</div>
-								</div>
-							</CardContent>
-						</Card>
-					);
-				})}
-			</div>
 		</div>
 	);
 }
