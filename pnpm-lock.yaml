@@ -15,8 +15,8 @@ importers:
         specifier: ^7.1.3
         version: 7.1.4(pa6rx4ct3ltzmbux6kbwnxl4ra)
       '@iqai/adk':
-        specifier: ^0.1.22
-        version: 0.1.22(@opentelemetry/core@2.0.1(@opentelemetry/api@1.9.0))(@prisma/client@6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2))(@types/node@20.19.9)(@types/pg@8.15.4)(bufferutil@4.0.9)(pg@8.16.3)(prisma@6.13.0(typescript@5.9.2))(react@19.1.0)(typescript@5.9.2)(utf-8-validate@5.0.10)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        specifier: ^0.2.3
+        version: 0.2.3(@opentelemetry/core@2.0.1(@opentelemetry/api@1.9.0))(@prisma/client@6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2))(@types/node@20.19.9)(@types/pg@8.15.4)(bufferutil@4.0.9)(pg@8.16.3)(prisma@6.13.0(typescript@5.9.2))(react@19.1.0)(typescript@5.9.2)(utf-8-validate@5.0.10)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@prisma/client':
         specifier: ^6.13.0
         version: 6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2)
@@ -742,16 +742,16 @@ packages:
     resolution: {integrity: sha512-Orxzlfb9c67A15cq2JQEyVc7wEsmFBmHjZWZYQMUyJ1qivXyMwdyNOs9odi79hze+2zqdTtu1E19IM/FtqZ10g==}
     engines: {node: '>=14'}
 
-  '@google-cloud/storage@7.16.0':
-    resolution: {integrity: sha512-7/5LRgykyOfQENcm6hDKP8SX/u9XxE5YOiWOkgkwcoO+cG8xT/cyOvp9wwN3IxfdYgpHs8CE7Nq2PKX2lNaEXw==}
+  '@google-cloud/storage@7.17.0':
+    resolution: {integrity: sha512-5m9GoZqKh52a1UqkxDBu/+WVFDALNtHg5up5gNmNbXQWBcV813tzJKsyDtKjOPrlR1em1TxtD7NSPCrObH7koQ==}
     engines: {node: '>=14'}
 
   '@google-cloud/vertexai@0.5.0':
     resolution: {integrity: sha512-qIFHYTXA5UCLdm9JG+Xf1suomCXxRqa1PKdYjqXuhZsCm8mn37Rb0Tf8djlhDzuRVWyWoQTmsWpsk28ZTmbqJg==}
     engines: {node: '>=18.0.0'}
 
-  '@google/genai@1.12.0':
-    resolution: {integrity: sha512-JBkQsULVexdM9zY4iXbm3A2dJ7El/hSPGCnxuRWPJNgeqcfYuyUnPTSy+I/v+MvTbz/occVmONSD6wn+17QLkg==}
+  '@google/genai@1.15.0':
+    resolution: {integrity: sha512-4CSW+hRTESWl3xVtde7pkQ3E+dDFhDq+m4ztmccRctZfx1gKy3v0M9STIMGk6Nq0s6O2uKMXupOZQ1JGorXVwQ==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
       '@modelcontextprotocol/sdk': ^1.11.0
@@ -890,8 +890,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@iqai/adk@0.1.22':
-    resolution: {integrity: sha512-LCVvC56/EdEaiQ9FUJKXzpdS7ZAWiIYWni5LiiLYRK6fWwGE4JliJoVws3GYF7lTlGYxtwDhrqTqyDIxA86j+Q==}
+  '@iqai/adk@0.2.3':
+    resolution: {integrity: sha512-r/BAEnMS0UdgeEQV9MZNVtz12S6zCLvLDerjVb2B7wNUxK5b7I2wdoVnLIJ08h+6/PsToAAXsZHcyW5k3HlIzA==}
     engines: {node: '>=22.0'}
     hasBin: true
     peerDependencies:
@@ -919,6 +919,9 @@ packages:
 
   '@jridgewell/sourcemap-codec@1.5.4':
     resolution: {integrity: sha512-VT2+G1VQs/9oz078bLrYbecdZKs912zQlkelYpuf+SXF+QvZDYJlbx/LSx+meSAwdDFnF8FVXW92AVjjkVmgFw==}
+
+  '@jridgewell/sourcemap-codec@1.5.5':
+    resolution: {integrity: sha512-cYQ9310grqxueWbl+WuIUIaiUaDcj7WOq5fVhEljNVgRfOUhY9fy2zTvfoqWsnebh8Sl70VScFbICvJnLKB0Og==}
 
   '@jridgewell/trace-mapping@0.3.29':
     resolution: {integrity: sha512-uw6guiW/gcAGPDhLmd77/6lW8QLeiV5RUTsAX46Db6oLhGaVj4lhnPwb184s1bkc8kdVg/+h988dro8GRDpmYQ==}
@@ -1010,8 +1013,8 @@ packages:
     resolution: {integrity: sha512-w8CVbdkDrVXFJbfBSlDfafDR6BAkpDmv1bC1UJVCoVny5tW2RKAdn9i68Xf7asYT4TnUhl/hN4zfUiKQq9II4g==}
     engines: {node: '>=16.0.0'}
 
-  '@modelcontextprotocol/sdk@1.17.1':
-    resolution: {integrity: sha512-CPle1OQehbWqd25La9Ack5B07StKIxh4+Bf19qnpZKJC1oI22Y0czZHbifjw1UoczIfKBwBDAp/dFxvHG13B5A==}
+  '@modelcontextprotocol/sdk@1.17.4':
+    resolution: {integrity: sha512-zq24hfuAmmlNZvik0FLI58uE5sriN0WWsQzIlYnzSuKDAHFqJtBFrl/LfB1NLgJT5Y7dEBzaX4yAKqOPrcetaw==}
     engines: {node: '>=18'}
 
   '@next/env@15.4.5':
@@ -2542,8 +2545,8 @@ packages:
   '@types/node@12.20.55':
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
 
-  '@types/node@18.19.121':
-    resolution: {integrity: sha512-bHOrbyztmyYIi4f1R0s17QsPs1uyyYnGcXeZoGEd227oZjry0q6XQBQxd82X1I57zEfwO8h9Xo+Kl5gX1d9MwQ==}
+  '@types/node@18.19.123':
+    resolution: {integrity: sha512-K7DIaHnh0mzVxreCR9qwgNxp3MH9dltPNIEddW9MYUlcKAzm+3grKNSTe2vCJHI1FaLpvpL5JGJrz1UZDKYvDg==}
 
   '@types/node@20.19.9':
     resolution: {integrity: sha512-cuVNgarYWZqxRJDQHEB58GEONhOK79QVR/qYx4S7kcUObQvUwvFnYxJuuHUKm2aieN9X3yZB4LZsuYNU1Qphsw==}
@@ -3133,6 +3136,10 @@ packages:
 
   chalk@5.5.0:
     resolution: {integrity: sha512-1tm8DTaJhPBG3bIkVeZt1iZM9GfSX2lzOeDVZH9R9ffRHpmHvxZ/QhgQH/aDTkswQVt+YHdXAdS/In/30OjCbg==}
+    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
+
+  chalk@5.6.0:
+    resolution: {integrity: sha512-46QrSQFyVSEyYAgQ22hQ+zDa60YHA4fBstHmtSApj1Y5vKtG27fWowW03jCk5KcbXEWPZUIR894aARCA/G1kfQ==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
 
   character-entities-html4@2.1.0:
@@ -3744,8 +3751,8 @@ packages:
     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
     engines: {node: '>=0.8.x'}
 
-  eventsource-parser@3.0.3:
-    resolution: {integrity: sha512-nVpZkTMM9rF6AQ9gPJpFsNAMt48wIzB5TQgiTLdHiuO8XEDhUgZEhqKlZWXbIzo9VmJ/HvysHqEaVeD5v9TPvA==}
+  eventsource-parser@3.0.5:
+    resolution: {integrity: sha512-bSRG85ZrMdmWtm7qkF9He9TNRzc/Bm99gEJMaQoHJ9E6Kv9QBbsldh2oMj7iXmYNEAVvNgvv5vPorG6W+XtBhQ==}
     engines: {node: '>=20.0.0'}
 
   eventsource@3.0.7:
@@ -4284,8 +4291,8 @@ packages:
   keyvaluestorage-interface@1.0.0:
     resolution: {integrity: sha512-8t6Q3TclQ4uZynJY9IGr2+SsIGwK9JHcO6ootkHCGA0CrQCRy+VkouYNO2xicET6b9al7QKzpebNow+gkpCL8g==}
 
-  kysely@0.28.4:
-    resolution: {integrity: sha512-pfQj8/Bo3KSzC1HIZB5MeeYRWcDmx1ZZv8H25LsyeygqXE+gfsbUAgPT1GSYZFctB1cdOVlv+OifuCls2mQSnw==}
+  kysely@0.28.5:
+    resolution: {integrity: sha512-rlB0I/c6FBDWPcQoDtkxi9zIvpmnV5xoIalfCMSMCa7nuA6VGA3F54TW9mEgX4DVf10sXAWCF5fDbamI/5ZpKA==}
     engines: {node: '>=20.0.0'}
 
   lightningcss-darwin-arm64@1.30.1:
@@ -5096,8 +5103,8 @@ packages:
   preact@10.24.2:
     resolution: {integrity: sha512-1cSoF0aCC8uaARATfrlz4VCBqE8LwZwRfLgkxJOQwAlQt6ayTmi0D9OF7nXid1POI5SZidFuG9CnlXbDfLqY/Q==}
 
-  preact@10.27.0:
-    resolution: {integrity: sha512-/DTYoB6mwwgPytiqQTh/7SFRL98ZdiD8Sk8zIUVOxtwq4oWcwrcd1uno9fE/zZmUaUrFNYzbH14CPebOz9tZQw==}
+  preact@10.27.1:
+    resolution: {integrity: sha512-V79raXEWch/rbqoNc7nT9E4ep7lu+mI3+sBmfRD4i1M73R3WLYcCtdI0ibxGVf4eQL8ZIz2nFacqEC+rmnOORQ==}
 
   prettier@2.8.8:
     resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
@@ -5127,8 +5134,8 @@ packages:
   property-information@7.1.0:
     resolution: {integrity: sha512-TwEZ+X+yCJmYfL7TPUOcvBZ4QfoT5YenQiJuX//0th53DE6w0xxLEtfK3iyryQFddXuvkIk51EEgrJQ0WJkOmQ==}
 
-  protobufjs@7.5.3:
-    resolution: {integrity: sha512-sildjKwVqOI2kmFDiXQ6aEB0fjYTafpEvIBs8tOR8qI4spuL9OPROLVu2qZqi/xgCfsHIwVqlaF8JBjWFHnKbw==}
+  protobufjs@7.5.4:
+    resolution: {integrity: sha512-CvexbZtbov6jW2eXAvLukXjXUW1TzFaivC46BpWc/3BpcCysb5Vffu+B3XHMm8lVEuy2Mm4XGex8hBSg1yapPg==}
     engines: {node: '>=12.0.0'}
 
   proxy-addr@2.0.7:
@@ -5537,8 +5544,8 @@ packages:
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
 
-  ssh2@1.16.0:
-    resolution: {integrity: sha512-r1X4KsBGedJqo7h8F5c4Ybpcr5RjyP+aWIG007uBPRjmdQWfEiVLzSK71Zji1B9sKxwaCvD8y8cwSkYrlLiRRg==}
+  ssh2@1.17.0:
+    resolution: {integrity: sha512-wPldCk3asibAjQ/kziWQQt1Wh3PgDFpC0XpwclzKcdT1vql6KeYxf5LIt4nlFkUeR8WuphYMKqUA56X4rjbfgQ==}
     engines: {node: '>=10.16.0'}
 
   stackback@0.0.2:
@@ -5635,8 +5642,8 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
-  swr@2.3.4:
-    resolution: {integrity: sha512-bYd2lrhc+VarcpkgWclcUi92wYCpOgMws9Sd1hG1ntAu0NEy+14CbotuFjshBU2kt9rYj9TSmDcybpxpeTU1fg==}
+  swr@2.3.6:
+    resolution: {integrity: sha512-wfHRmHWk/isGNMwlLGlZX5Gzz/uTgo0o2IRuTMcf4CPuPFJZlq0rDaKUx+ozB5nBOReNV1kiOyzMfj+MBMikLw==}
     peerDependencies:
       react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -6381,7 +6388,7 @@ snapshots:
       '@ai-sdk/provider-utils': 2.2.8(zod@3.25.76)
       '@ai-sdk/ui-utils': 1.2.11(zod@3.25.76)
       react: 19.1.0
-      swr: 2.3.4(react@19.1.0)
+      swr: 2.3.6(react@19.1.0)
       throttleit: 2.1.0
     optionalDependencies:
       zod: 3.25.76
@@ -6402,7 +6409,7 @@ snapshots:
 
   '@anthropic-ai/sdk@0.39.0':
     dependencies:
-      '@types/node': 18.19.121
+      '@types/node': 18.19.123
       '@types/node-fetch': 2.6.13
       abort-controller: 3.0.0
       agentkeepalive: 4.6.0
@@ -6657,7 +6664,7 @@ snapshots:
       eth-json-rpc-filters: 6.0.1
       eventemitter3: 5.0.1
       keccak: 3.0.4
-      preact: 10.27.0
+      preact: 10.27.1
       sha.js: 2.4.12
     transitivePeerDependencies:
       - supports-color
@@ -6962,7 +6969,7 @@ snapshots:
 
   '@google-cloud/promisify@4.0.0': {}
 
-  '@google-cloud/storage@7.16.0':
+  '@google-cloud/storage@7.17.0':
     dependencies:
       '@google-cloud/paginator': 5.0.2
       '@google-cloud/projectify': 4.0.0
@@ -6990,12 +6997,12 @@ snapshots:
       - encoding
       - supports-color
 
-  '@google/genai@1.12.0(@modelcontextprotocol/sdk@1.17.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@google/genai@1.15.0(@modelcontextprotocol/sdk@1.17.4)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       google-auth-library: 9.15.1
       ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
     optionalDependencies:
-      '@modelcontextprotocol/sdk': 1.17.1
+      '@modelcontextprotocol/sdk': 1.17.4
     transitivePeerDependencies:
       - bufferutil
       - encoding
@@ -7011,7 +7018,7 @@ snapshots:
     dependencies:
       lodash.camelcase: 4.3.0
       long: 5.3.2
-      protobufjs: 7.5.3
+      protobufjs: 7.5.4
       yargs: 17.7.2
 
   '@img/sharp-darwin-arm64@0.34.3':
@@ -7100,15 +7107,15 @@ snapshots:
   '@img/sharp-win32-x64@0.34.3':
     optional: true
 
-  '@iqai/adk@0.1.22(@opentelemetry/core@2.0.1(@opentelemetry/api@1.9.0))(@prisma/client@6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2))(@types/node@20.19.9)(@types/pg@8.15.4)(bufferutil@4.0.9)(pg@8.16.3)(prisma@6.13.0(typescript@5.9.2))(react@19.1.0)(typescript@5.9.2)(utf-8-validate@5.0.10)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
+  '@iqai/adk@0.2.3(@opentelemetry/core@2.0.1(@opentelemetry/api@1.9.0))(@prisma/client@6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2))(@types/node@20.19.9)(@types/pg@8.15.4)(bufferutil@4.0.9)(pg@8.16.3)(prisma@6.13.0(typescript@5.9.2))(react@19.1.0)(typescript@5.9.2)(utf-8-validate@5.0.10)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
     dependencies:
       '@anthropic-ai/sdk': 0.39.0
       '@clack/prompts': 0.11.0
       '@electric-sql/pglite': 0.3.7
-      '@google-cloud/storage': 7.16.0
+      '@google-cloud/storage': 7.17.0
       '@google-cloud/vertexai': 0.5.0
-      '@google/genai': 1.12.0(@modelcontextprotocol/sdk@1.17.1)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
-      '@modelcontextprotocol/sdk': 1.17.1
+      '@google/genai': 1.15.0(@modelcontextprotocol/sdk@1.17.4)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@modelcontextprotocol/sdk': 1.17.4
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/auto-instrumentations-node': 0.60.1(@opentelemetry/api@1.9.0)(@opentelemetry/core@2.0.1(@opentelemetry/api@1.9.0))
       '@opentelemetry/exporter-trace-otlp-http': 0.202.0(@opentelemetry/api@1.9.0)
@@ -7121,14 +7128,14 @@ snapshots:
       '@types/express': 4.17.23
       ai: 4.3.19(react@19.1.0)(zod@3.25.76)
       axios: 1.11.0
-      chalk: 5.5.0
+      chalk: 5.6.0
       cors: 2.8.5
       dedent: 1.6.0
       dockerode: 4.0.7
       dotenv: 16.6.1
-      drizzle-orm: 0.43.1(@electric-sql/pglite@0.3.7)(@opentelemetry/api@1.9.0)(@prisma/client@6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2))(@types/pg@8.15.4)(kysely@0.28.4)(pg@8.16.3)(prisma@6.13.0(typescript@5.9.2))
+      drizzle-orm: 0.43.1(@electric-sql/pglite@0.3.7)(@opentelemetry/api@1.9.0)(@prisma/client@6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2))(@types/pg@8.15.4)(kysely@0.28.5)(pg@8.16.3)(prisma@6.13.0(typescript@5.9.2))
       express: 4.21.2
-      kysely: 0.28.4
+      kysely: 0.28.5
       openai: 4.104.0(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.76)
       socket.io: 4.8.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       ts-node: 10.9.2(@types/node@20.19.9)(typescript@5.9.2)
@@ -7187,6 +7194,8 @@ snapshots:
 
   '@jridgewell/sourcemap-codec@1.5.4': {}
 
+  '@jridgewell/sourcemap-codec@1.5.5': {}
+
   '@jridgewell/trace-mapping@0.3.29':
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
@@ -7195,7 +7204,7 @@ snapshots:
   '@jridgewell/trace-mapping@0.3.9':
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
-      '@jridgewell/sourcemap-codec': 1.5.4
+      '@jridgewell/sourcemap-codec': 1.5.5
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
@@ -7377,14 +7386,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@modelcontextprotocol/sdk@1.17.1':
+  '@modelcontextprotocol/sdk@1.17.4':
     dependencies:
       ajv: 6.12.6
       content-type: 1.0.5
       cors: 2.8.5
       cross-spawn: 7.0.6
       eventsource: 3.0.7
-      eventsource-parser: 3.0.3
+      eventsource-parser: 3.0.5
       express: 5.1.0
       express-rate-limit: 7.5.1(express@5.1.0)
       pkce-challenge: 5.0.0
@@ -8042,7 +8051,7 @@ snapshots:
       '@opentelemetry/sdk-logs': 0.202.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/sdk-metrics': 2.0.1(@opentelemetry/api@1.9.0)
       '@opentelemetry/sdk-trace-base': 2.0.1(@opentelemetry/api@1.9.0)
-      protobufjs: 7.5.3
+      protobufjs: 7.5.4
 
   '@opentelemetry/propagation-utils@0.31.3(@opentelemetry/api@1.9.0)':
     dependencies:
@@ -9330,7 +9339,7 @@ snapshots:
 
   '@types/node@12.20.55': {}
 
-  '@types/node@18.19.121':
+  '@types/node@18.19.123':
     dependencies:
       undici-types: 5.26.5
 
@@ -10565,6 +10574,8 @@ snapshots:
 
   chalk@5.5.0: {}
 
+  chalk@5.6.0: {}
+
   character-entities-html4@2.1.0: {}
 
   character-entities-legacy@3.0.0: {}
@@ -10848,7 +10859,7 @@ snapshots:
       debug: 4.4.1
       readable-stream: 3.6.2
       split-ca: 1.0.1
-      ssh2: 1.16.0
+      ssh2: 1.17.0
     transitivePeerDependencies:
       - supports-color
 
@@ -10858,7 +10869,7 @@ snapshots:
       '@grpc/grpc-js': 1.13.4
       '@grpc/proto-loader': 0.7.15
       docker-modem: 5.0.6
-      protobufjs: 7.5.3
+      protobufjs: 7.5.4
       tar-fs: 2.1.3
       uuid: 10.0.0
     transitivePeerDependencies:
@@ -10884,13 +10895,13 @@ snapshots:
 
   dotenv@16.6.1: {}
 
-  drizzle-orm@0.43.1(@electric-sql/pglite@0.3.7)(@opentelemetry/api@1.9.0)(@prisma/client@6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2))(@types/pg@8.15.4)(kysely@0.28.4)(pg@8.16.3)(prisma@6.13.0(typescript@5.9.2)):
+  drizzle-orm@0.43.1(@electric-sql/pglite@0.3.7)(@opentelemetry/api@1.9.0)(@prisma/client@6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2))(@types/pg@8.15.4)(kysely@0.28.5)(pg@8.16.3)(prisma@6.13.0(typescript@5.9.2)):
     optionalDependencies:
       '@electric-sql/pglite': 0.3.7
       '@opentelemetry/api': 1.9.0
       '@prisma/client': 6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2)
       '@types/pg': 8.15.4
-      kysely: 0.28.4
+      kysely: 0.28.5
       pg: 8.16.3
       prisma: 6.13.0(typescript@5.9.2)
 
@@ -11150,11 +11161,11 @@ snapshots:
 
   events@3.3.0: {}
 
-  eventsource-parser@3.0.3: {}
+  eventsource-parser@3.0.5: {}
 
   eventsource@3.0.7:
     dependencies:
-      eventsource-parser: 3.0.3
+      eventsource-parser: 3.0.5
 
   execa@8.0.1:
     dependencies:
@@ -11776,7 +11787,7 @@ snapshots:
   jsondiffpatch@0.6.0:
     dependencies:
       '@types/diff-match-patch': 1.0.36
-      chalk: 5.5.0
+      chalk: 5.6.0
       diff-match-patch: 1.0.5
 
   jsonfile@4.0.0:
@@ -11808,7 +11819,7 @@ snapshots:
 
   keyvaluestorage-interface@1.0.0: {}
 
-  kysely@0.28.4: {}
+  kysely@0.28.5: {}
 
   lightningcss-darwin-arm64@1.30.1:
     optional: true
@@ -12502,7 +12513,7 @@ snapshots:
 
   openai@4.104.0(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.76):
     dependencies:
-      '@types/node': 18.19.121
+      '@types/node': 18.19.123
       '@types/node-fetch': 2.6.13
       abort-controller: 3.0.0
       agentkeepalive: 4.6.0
@@ -12772,7 +12783,7 @@ snapshots:
 
   preact@10.24.2: {}
 
-  preact@10.27.0: {}
+  preact@10.27.1: {}
 
   prettier@2.8.8: {}
 
@@ -12793,7 +12804,7 @@ snapshots:
 
   property-information@7.1.0: {}
 
-  protobufjs@7.5.3:
+  protobufjs@7.5.4:
     dependencies:
       '@protobufjs/aspromise': 1.1.2
       '@protobufjs/base64': 1.1.2
@@ -13376,7 +13387,7 @@ snapshots:
 
   sprintf-js@1.0.3: {}
 
-  ssh2@1.16.0:
+  ssh2@1.17.0:
     dependencies:
       asn1: 0.2.6
       bcrypt-pbkdf: 1.0.2
@@ -13460,7 +13471,7 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
-  swr@2.3.4(react@19.1.0):
+  swr@2.3.6(react@19.1.0):
     dependencies:
       dequal: 2.0.3
       react: 19.1.0

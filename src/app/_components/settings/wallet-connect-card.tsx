@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@everipedia/iq-login/client";
 import { Globe } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { mainnet } from "viem/chains";
 import {
 	useAccount,
@@ -21,6 +21,7 @@ export function WalletConnectCard({
 	closeModal,
 }: { closeModal: (isOpen: boolean) => void }) {
 	const pathname = usePathname();
+	const router = useRouter();
 	const { logout } = useAuth();
 	const { address, chain, isConnected } = useAccount();
 	const { chains, switchChain, isPending: isSwitching } = useSwitchChain();
@@ -38,6 +39,12 @@ export function WalletConnectCard({
 
 	const short = (a?: string) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "");
 	const isUnsupported = !!chainId && !chains.some((c) => c.id === chainId);
+
+	const handleLogout = () => {
+		closeModal(false);
+		logout();
+		router.push("/login?from=/");
+	};
 
 	return (
 		<Card>
@@ -66,7 +73,7 @@ export function WalletConnectCard({
 							</div>
 							<div className="flex items-center gap-2">
 								<Badge className="bg-primary/10 text-primary">Connected</Badge>
-								<Button variant="outline" size="sm" onClick={logout}>
+								<Button variant="outline" size="sm" onClick={handleLogout}>
 									Disconnect
 								</Button>
 							</div>

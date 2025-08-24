@@ -1,5 +1,15 @@
 "use client";
 
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import {
+	Sheet,
+	SheetContent,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "@/components/ui/sheet";
+import { cn } from "@/lib/utils";
 import {
 	Bot,
 	Briefcase,
@@ -17,17 +27,6 @@ import {
 	useState,
 } from "react";
 import { useAccount } from "wagmi";
-
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import {
-	Sheet,
-	SheetContent,
-	SheetHeader,
-	SheetTitle,
-	SheetTrigger,
-} from "@/components/ui/sheet";
-import { cn } from "@/lib/utils";
 import type { getCountries, getUser } from "../(home)/_actions";
 import AiChatDrawer from "./ai-chat-drawer";
 import { SettingsDialog } from "./settings/settings";
@@ -45,7 +44,6 @@ export function Navbar({
 	const [isSettingModalOpen, setIsSettingModalOpen] = useState(false);
 	const [openMobile, setOpenMobile] = useState(false);
 	const [aiOpen, setAiOpen] = useState(false);
-
 	const { isConnected } = useAccount();
 	const isLoggedIn = isConnected;
 

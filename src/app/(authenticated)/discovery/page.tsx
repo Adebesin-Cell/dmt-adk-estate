@@ -42,7 +42,7 @@ export default async function DiscoveryPage() {
 	});
 
 	return (
-		<div className="p-6 max-w-5xl mx-auto space-y-8 min-h-screen">
+		<div className="p-6 max-w-7xl mx-auto space-y-8 min-h-screen">
 			<div className="flex items-center justify-between">
 				<div>
 					<h1 className="text-2xl font-semibold text-foreground flex items-center gap-3">
@@ -218,7 +218,7 @@ export default async function DiscoveryPage() {
 					</CardContent>
 				</Card>
 			) : (
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
 					{properties.map((p) => (
 						<PropertyCard key={p.id} property={p} />
 					))}

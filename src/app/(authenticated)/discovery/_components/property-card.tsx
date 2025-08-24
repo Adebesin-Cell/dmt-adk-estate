@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { getCurrency } from "@/lib/helpers/get-currency";
 import type { Prisma, Property } from "@prisma/client";
-import { Bot, Home, MapPin, Star } from "lucide-react";
+import { Bot, History, Home, MapPin, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnalyzeWithAI } from "./analyze-button";
@@ -136,6 +136,17 @@ export function PropertyCard({
 							View Listing
 						</Button>
 					)}
+					{p.analyses?.[0]?.id ? (
+						<Button
+							variant="outline"
+							asChild
+							className="flex-1 border-border hover:bg-primary/10 p-0"
+						>
+							<Link href={`/analysis/${p.analyses[0].id}`}>
+								<History className="w-4 h-4" />
+							</Link>
+						</Button>
+					) : null}
 				</div>
 			</CardContent>
 		</Card>

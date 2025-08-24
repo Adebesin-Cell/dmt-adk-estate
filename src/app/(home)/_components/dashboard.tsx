@@ -31,7 +31,7 @@ export function Dashboard({ user }: DashboardProps) {
 	}, 0);
 
 	return (
-		<div className="p-6 max-w-5xl mx-auto space-y-8">
+		<div className="p-6 max-w-7xl mx-auto space-y-8">
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<Card className="bg-card border-border">
 					<CardHeader className="flex flex-row items-center justify-between pb-2">
