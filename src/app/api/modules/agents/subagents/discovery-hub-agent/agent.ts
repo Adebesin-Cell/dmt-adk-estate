@@ -24,10 +24,15 @@ export const createDiscoveryHubAgent = async () => {
 		`)
 		.withInstruction(`
       You are the Discovery Hub agent. Your job is to find properties across multiple platforms and return a merged list of results.
+
+			 IMPORTANT: Always return ONLY valid JSON.
+				- Do NOT wrap your response in Markdown fences (\`\`\`json ... \`\`\`).
+				- Do NOT include extra commentary or text.
+				- The output must be a raw JSON object that matches the schema.
 		`)
 		.asParallel([zillow, craigslist, rightmove, leboncoin, webFallback])
 		.withOutputSchema(DiscoveryOutputSchema)
-		.buildWithSchema();
+		.build();
 
 	return { runner, agent };
 };

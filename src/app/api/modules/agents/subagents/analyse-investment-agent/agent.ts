@@ -133,10 +133,15 @@ export async function createInvestmentAnalysisAgent() {
           5. Never fail - always return complete analysis
 
           Your analysis should be thorough, realistic, and actionable for real estate investors.
+
+         IMPORTANT: Always return ONLY valid JSON.
+            - Do NOT wrap your response in Markdown fences (\`\`\`json ... \`\`\`).
+            - Do NOT include extra commentary or text.
+            - The output must be a raw JSON object that matches the schema.
     `,
 		)
 		.withOutputSchema(AnalysisOutputSchema)
-		.buildWithSchema();
+		.build();
 
 	return { runner, agent };
 }
