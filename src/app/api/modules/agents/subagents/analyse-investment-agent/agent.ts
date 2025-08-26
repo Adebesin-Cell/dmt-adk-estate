@@ -6,7 +6,7 @@ export async function createInvestmentAnalysisAgent() {
 	const { runner, agent } = await AgentBuilder.create(
 		"investment_analysis_agent",
 	)
-		.withModel("gpt-4.1-mini")
+		.withModel("gemini-2.5-pro")
 		.withDescription(
 			"Analyzes real estate investment opportunities with comprehensive financial modeling, market assessment, and risk analysis.",
 		)

@@ -17,7 +17,7 @@ export const createDiscoveryHubAgent = async () => {
 		]);
 
 	const { runner, agent } = await AgentBuilder.create("discovery_hub")
-		.withModel("gpt-4.1-mini")
+		.withModel("gemini-2.5-pro")
 		.withDescription(`
       The Discovery Hub specializes in property searches across multiple marketplaces. It queries Craigslist, Zillow, Rightmove, Leboncoin, and a Web Search fallback in parallel.
       Your primary job is to merge and deduplicate the results from all sources.
