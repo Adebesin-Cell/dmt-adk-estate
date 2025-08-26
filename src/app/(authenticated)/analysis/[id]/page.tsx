@@ -87,7 +87,7 @@ export default async function AnalysisPage({
 						</div>
 						<div className="flex items-center gap-2">
 							<Badge className="bg-primary/20 text-primary border-primary/30">
-								{analysisData?.status || "ANALYZING"}
+								{analysisData?.analysisStatus || "ANALYZING"}
 							</Badge>
 							<AddToPortfolioControls propertyId={property.id} />
 						</div>
@@ -107,6 +107,8 @@ export default async function AnalysisPage({
 									}
 									alt="Property"
 									className="w-full h-full object-cover rounded-xl"
+									width={280}
+									height={192}
 								/>
 							) : (
 								<Image
@@ -186,7 +188,9 @@ export default async function AnalysisPage({
 										</div>
 										<div className="text-center">
 											<div className="text-lg font-semibold text-foreground">
-												{formatPercentage(analysisData.metrics.roiPct)}
+												{formatPercentage(
+													analysisData.metrics.totalROI5YearPct,
+												)}
 											</div>
 											<div className="text-xs text-muted-foreground">
 												5Y ROI
@@ -194,7 +198,7 @@ export default async function AnalysisPage({
 										</div>
 										<div className="text-center">
 											<div className="text-lg font-semibold text-foreground">
-												{analysisData.metrics.rentVsBuy}
+												{analysisData.metrics.rentVsBuyRecommendation}
 											</div>
 											<div className="text-xs text-muted-foreground">
 												Recommendation
@@ -314,9 +318,9 @@ export default async function AnalysisPage({
 												</div>
 												<div className="text-center p-4 bg-muted rounded-lg border border-border">
 													<div className="text-2xl font-bold text-foreground">
-														{analysisData.assumptions?.rentAnnual
+														{analysisData.assumptions?.annualGrossRent
 															? formatCurrency(
-																	analysisData.assumptions.rentAnnual * 100,
+																	analysisData.assumptions.annualGrossRent,
 																	analysisData.metrics?.currency,
 																)
 															: "N/A"}
@@ -337,7 +341,7 @@ export default async function AnalysisPage({
 																`, ${analysisData.dataSource.rentSource}`}
 														</p>
 														<p className="text-sm text-muted-foreground">
-															{analysisData.dataSource.hasComps
+															{analysisData.dataSource.compsProvided
 																? "Analysis includes comparable rentals and market trend data."
 																: "Limited comparable data available - estimates may vary."}
 															{analysisData.assumptions?.rentGrowthPct &&
@@ -345,6 +349,16 @@ export default async function AnalysisPage({
 																	analysisData.assumptions.rentGrowthPct,
 																)} annual rent growth.`}
 														</p>
+														<div className="mt-2">
+															<Badge
+																className={`text-xs ${getQualityColor(
+																	analysisData.dataSource.estimationQuality,
+																)}`}
+															>
+																{analysisData.dataSource.estimationQuality}{" "}
+																Quality Estimates
+															</Badge>
+														</div>
 													</>
 												)}
 												{analysisData.warnings?.length > 0 && (
@@ -406,7 +420,7 @@ export default async function AnalysisPage({
 									)}
 								</div>
 
-								{analysisData.projection5y && (
+								{analysisData.projections5Year && (
 									<Card className="bg-card border-border">
 										<CardHeader>
 											<CardTitle className="flex items-center gap-2 text-foreground">
@@ -416,49 +430,111 @@ export default async function AnalysisPage({
 										</CardHeader>
 										<CardContent>
 											<div className="space-y-3">
-												{analysisData.projection5y.map((year) => (
+												{analysisData.projections5Year.map((yearData) => (
 													<div
-														key={year.year}
+														key={yearData.year}
 														className="flex items-center justify-between p-4 bg-muted rounded-lg border border-border"
 													>
 														<span className="font-medium text-foreground">
-															Year {year.year}
+															Year {yearData.year}
 														</span>
 														<div className="flex items-center gap-6 text-sm">
 															<div className="text-right">
 																<div className="font-medium text-foreground">
 																	{formatCurrency(
-																		year.income * 100,
+																		yearData.grossIncome,
 																		analysisData.metrics?.currency,
 																	)}
 																</div>
 																<div className="text-xs text-muted-foreground">
-																	Income
+																	Gross Income
 																</div>
 															</div>
 															<div className="text-right">
 																<div className="font-medium text-foreground">
 																	{formatCurrency(
-																		year.net * 100,
+																		yearData.netCashFlow,
 																		analysisData.metrics?.currency,
 																	)}
 																</div>
 																<div className="text-xs text-muted-foreground">
-																	Net
+																	Net Cash Flow
 																</div>
 															</div>
 															<div className="text-right">
 																<div className="font-medium text-green-400">
-																	{formatPercentage(year.roiPct)}
+																	{formatPercentage(yearData.cumulativeROIPct)}
 																</div>
 																<div className="text-xs text-muted-foreground">
-																	ROI
+																	Cumulative ROI
+																</div>
+															</div>
+															<div className="text-right">
+																<div className="font-medium text-foreground">
+																	{formatCurrency(
+																		yearData.propertyValue,
+																		analysisData.metrics?.currency,
+																	)}
+																</div>
+																<div className="text-xs text-muted-foreground">
+																	Property Value
 																</div>
 															</div>
 														</div>
 													</div>
 												))}
 											</div>
+
+											{analysisData.assumptions?.financing && (
+												<div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/20">
+													<h4 className="font-medium text-foreground mb-2">
+														Financing Details
+													</h4>
+													<div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+														<div>
+															<div className="text-muted-foreground">
+																Loan Amount
+															</div>
+															<div className="font-medium">
+																{formatCurrency(
+																	analysisData.assumptions.financing.loanAmount,
+																	analysisData.metrics?.currency,
+																)}
+															</div>
+														</div>
+														<div>
+															<div className="text-muted-foreground">LTV</div>
+															<div className="font-medium">
+																{formatPercentage(
+																	analysisData.assumptions.financing.ltvPct,
+																)}
+															</div>
+														</div>
+														<div>
+															<div className="text-muted-foreground">
+																Interest Rate
+															</div>
+															<div className="font-medium">
+																{formatPercentage(
+																	analysisData.assumptions.financing.ratePct,
+																)}
+															</div>
+														</div>
+														<div>
+															<div className="text-muted-foreground">
+																Monthly Payment
+															</div>
+															<div className="font-medium">
+																{formatCurrency(
+																	analysisData.assumptions.financing
+																		.monthlyPayment,
+																	analysisData.metrics?.currency,
+																)}
+															</div>
+														</div>
+													</div>
+												</div>
+											)}
 										</CardContent>
 									</Card>
 								)}
@@ -466,7 +542,7 @@ export default async function AnalysisPage({
 						)}
 					</TabsContent>
 					<TabsContent value="memo" className="space-y-6">
-						{!analysisData?.memoMarkdown ? (
+						{!analysisData?.investmentMemo ? (
 							<div className="flex flex-col items-center justify-center py-12 text-center">
 								<FileText className="w-12 h-12 text-muted-foreground mb-4" />
 								<h3 className="text-lg font-semibold text-foreground mb-2">
@@ -487,7 +563,7 @@ export default async function AnalysisPage({
 									</CardTitle>
 								</CardHeader>
 								<CardContent>
-									<AnalysisMarkdown markdown={analysisData.memoMarkdown} />
+									<AnalysisMarkdown markdown={analysisData.investmentMemo} />
 								</CardContent>
 							</Card>
 						)}
@@ -526,9 +602,8 @@ export default async function AnalysisPage({
 	);
 }
 
-const formatCurrency = (amountMinor?: number, currency = "USD") => {
-	if (amountMinor === null || amountMinor === undefined) return "N/A";
-	const amount = amountMinor / 100;
+const formatCurrency = (amount?: number, currency = "USD") => {
+	if (amount === null || amount === undefined) return "N/A";
 	return new Intl.NumberFormat("en-US", {
 		style: "currency",
 		currency: currency,
@@ -581,5 +656,18 @@ const getRiskValue = (level: string) => {
 			return 85;
 		default:
 			return 50;
+	}
+};
+
+const getQualityColor = (quality: string) => {
+	switch (quality) {
+		case "High":
+			return "bg-green-600/20 text-green-400 border-green-600/30";
+		case "Medium":
+			return "bg-yellow-600/20 text-yellow-400 border-yellow-600/30";
+		case "Low":
+			return "bg-red-600/20 text-red-400 border-red-600/30";
+		default:
+			return "bg-gray-600/20 text-gray-400 border-gray-600/30";
 	}
 };

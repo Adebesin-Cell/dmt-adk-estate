@@ -43,9 +43,13 @@ export function Dashboard({ user }: DashboardProps) {
 	const proposals = user?.proposals ?? [];
 	const regionLabel = regionLabelFromUser(user);
 
-	const primaryCurrency =
-		savedProps.find((s) => s.property?.currency)?.property?.currency ?? "EUR";
+	const primaryCurrency = getPrimaryCurrency(savedProps);
+
 	const portfolioTotalMinor = savedProps.reduce((sum, s) => {
+		const analysis = getLatestAnalysis(s.property);
+		if (analysis?.metrics) {
+			return sum + analysis.metrics.purchasePrice * 100;
+		}
 		return sum + (getCurrency(s.property).priceMinor ?? 0);
 	}, 0);
 
@@ -66,14 +70,16 @@ export function Dashboard({ user }: DashboardProps) {
 
 	const avgRoi = avg(
 		analysedItems
-			.map((i) => i.data?.metrics?.roiPct)
+			.map((i) => i.data?.metrics?.totalROI5YearPct)
 			.filter((v): v is number => typeof v === "number"),
 	);
+
 	const avgCap = avg(
 		analysedItems
 			.map((i) => i.data?.metrics?.capRatePct)
 			.filter((v): v is number => typeof v === "number"),
 	);
+
 	const avgYield = avg(
 		analysedItems
 			.map((i) => i.data?.metrics?.grossYieldPct)
@@ -84,6 +90,11 @@ export function Dashboard({ user }: DashboardProps) {
 		(p) => !["APPROVED", "REJECTED"].includes(p.status ?? ""),
 	);
 	const pendingValueMinor = pendingProposals.reduce((sum, p) => {
+		// Try to get value from analysis first, then property
+		const analysis = getLatestAnalysis(p.property);
+		if (analysis?.metrics) {
+			return sum + analysis.metrics.purchasePrice * 100;
+		}
 		const { priceMinor } = getCurrency(p.property);
 		return sum + (priceMinor ?? 0);
 	}, 0);
@@ -127,13 +138,15 @@ export function Dashboard({ user }: DashboardProps) {
 
 	const opportunities = [...analysedItems]
 		.sort(
-			(a, b) => (b.data?.metrics?.roiPct ?? 0) - (a.data?.metrics?.roiPct ?? 0),
+			(a, b) =>
+				(b.data?.metrics?.totalROI5YearPct ?? 0) -
+				(a.data?.metrics?.totalROI5YearPct ?? 0),
 		)
 		.slice(0, 6)
 		.map(({ property, data, analysis }) => {
 			const metrics = data?.metrics;
 			const signal = classifySignal(
-				metrics?.roiPct,
+				metrics?.totalROI5YearPct,
 				metrics?.capRatePct,
 				metrics?.grossYieldPct,
 			);
@@ -146,12 +159,13 @@ export function Dashboard({ user }: DashboardProps) {
 				propertyId: property.id,
 				addr: property.address ?? property.city ?? "Unnamed property",
 				loc: [property.city, property.country].filter(Boolean).join(", "),
-				roiPct: metrics?.roiPct ?? null,
-				capPct: metrics?.capRatePct ?? null,
-				yieldPct: metrics?.grossYieldPct ?? null,
+				totalROI5YearPct: metrics?.totalROI5YearPct ?? null,
+				capRatePct: metrics?.capRatePct ?? null,
+				grossYieldPct: metrics?.grossYieldPct ?? null,
 				signal,
 				status,
 				confidence,
+				currency: metrics?.currency ?? primaryCurrency,
 			};
 		});
 
@@ -168,7 +182,13 @@ export function Dashboard({ user }: DashboardProps) {
 			"residential";
 
 		const riskOverall = summarizeRisk(data);
-		const perf = perfFromRoi(data?.metrics?.roiPct);
+		const perf = perfFromRoi(data?.metrics?.totalROI5YearPct);
+
+		// Use analysis currency if available
+		const currency = data?.metrics?.currency ?? p?.currency ?? primaryCurrency;
+		const valueMinor = data?.metrics
+			? data.metrics.purchasePrice * 100
+			: getCurrency(p).priceMinor ?? 0;
 
 		return {
 			id: sp.id,
@@ -176,8 +196,8 @@ export function Dashboard({ user }: DashboardProps) {
 			city: p?.city,
 			country: p?.country,
 			tokens: `${(meta?.shares as number | undefined) ?? ""}`.trim(),
-			valueMinor: getCurrency(p).priceMinor ?? 0,
-			currency: p?.currency ?? primaryCurrency,
+			valueMinor,
+			currency,
 			performanceText: perf.text,
 			performanceClass: perf.className,
 			type,
@@ -233,7 +253,7 @@ export function Dashboard({ user }: DashboardProps) {
 					<CardContent className="p-4">
 						<div className="flex items-center justify-between">
 							<div>
-								<p className="text-sm text-muted-foreground">Avg ROI</p>
+								<p className="text-sm text-muted-foreground">Avg ROI (5yr)</p>
 								<p className="text-2xl font-semibold text-foreground">
 									{avgRoi ? formatPct(avgRoi) : "—"}
 								</p>
@@ -391,9 +411,13 @@ export function Dashboard({ user }: DashboardProps) {
 												</div>
 												<div className="grid grid-cols-3 gap-4 text-sm">
 													<div>
-														<span className="text-muted-foreground">ROI:</span>
+														<span className="text-muted-foreground">
+															ROI (5yr):
+														</span>
 														<span className="ml-1 text-primary font-medium">
-															{op.roiPct != null ? formatPct(op.roiPct) : "N/A"}
+															{op.totalROI5YearPct != null
+																? formatPct(op.totalROI5YearPct)
+																: "N/A"}
 														</span>
 													</div>
 													<div>
@@ -401,7 +425,9 @@ export function Dashboard({ user }: DashboardProps) {
 															Cap Rate:
 														</span>
 														<span className="ml-1 text-foreground">
-															{op.capPct != null ? formatPct(op.capPct) : "N/A"}
+															{op.capRatePct != null
+																? formatPct(op.capRatePct)
+																: "N/A"}
 														</span>
 													</div>
 													<div>
@@ -711,6 +737,29 @@ export function Dashboard({ user }: DashboardProps) {
 			</div>
 		</div>
 	);
+}
+
+// Helper function to get the latest analysis from a property
+function getLatestAnalysis(property: any): AnalysisOutput | null {
+	if (!property?.analyses?.[0]) return null;
+	const parsed = AnalysisOutputSchema.safeParse(property.analyses[0].data);
+	return parsed.success ? parsed.data : null;
+}
+
+// Helper function to determine primary currency
+function getPrimaryCurrency(savedProps: any[]): string {
+	// Try to get currency from analysis data first
+	for (const sp of savedProps) {
+		const analysis = getLatestAnalysis(sp.property);
+		if (analysis?.metrics?.currency) {
+			return analysis.metrics.currency;
+		}
+	}
+
+	// Fall back to property currency
+	const propertyCurrency = savedProps.find((s) => s.property?.currency)
+		?.property?.currency;
+	return propertyCurrency ?? "EUR";
 }
 
 function formatMoney(minor?: number | null, currency = "EUR") {
