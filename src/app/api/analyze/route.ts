@@ -91,6 +91,8 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
+		console.log(JSON.stringify(output, null, 6));
+
 		const outParsed = AnalysisOutputSchema.safeParse(output);
 		if (!outParsed.success) {
 			return NextResponse.json(

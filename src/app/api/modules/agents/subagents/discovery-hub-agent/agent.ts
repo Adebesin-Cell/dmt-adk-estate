@@ -27,7 +27,7 @@ export const createDiscoveryHubAgent = async () => {
 		`)
 		.asParallel([zillow, craigslist, rightmove, leboncoin, webFallback])
 		.withOutputSchema(DiscoveryOutputSchema)
-		.build();
+		.buildWithSchema();
 
 	return { runner, agent };
 };

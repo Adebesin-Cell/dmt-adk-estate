@@ -1,3 +1,4 @@
+import { prisma } from "@/lib/integration/prisma";
 import { getAuth } from "@everipedia/iq-login";
 import { type NextRequest, NextResponse } from "next/server";
 import { DiscoveryOutputSchema } from "../modules/agents/subagents/discovery-hub-agent/_schema";
@@ -71,6 +72,23 @@ export async function POST(_req: NextRequest) {
 			);
 		}
 
+		const result = await prisma.property.createMany({
+			data: parsed.data.listings.map((p) => ({
+				source: p.source,
+				sourceId: p.sourceId ?? null,
+				url: p.url ?? null,
+				address: p.address ?? null,
+				city: p.city ?? null,
+				country: p.country ?? null,
+				lat: p.lat ?? null,
+				lng: p.lng ?? null,
+				priceMinor: p.priceMinor ?? null,
+				currency: p.currency ?? null,
+				metadata: p.metadata ?? {},
+			})),
+			skipDuplicates: true,
+		});
+
 		return NextResponse.json({
 			success: true,
 			meta: {
@@ -80,6 +98,10 @@ export async function POST(_req: NextRequest) {
 				currency: prefs.currency,
 			},
 			discovery: parsed.data,
+			persistence: {
+				inserted: result.count,
+				totalReceived: parsed.data.listings.length,
+			},
 			timestamp: new Date().toISOString(),
 		});
 	} catch (err) {

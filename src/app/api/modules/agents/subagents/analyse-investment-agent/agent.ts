@@ -135,8 +135,7 @@ export async function createInvestmentAnalysisAgent() {
           Your analysis should be thorough, realistic, and actionable for real estate investors.
     `,
 		)
-		.withOutputSchema(AnalysisOutputSchema)
-		.build();
+		.buildWithSchema();
 
 	return { runner, agent };
 }
