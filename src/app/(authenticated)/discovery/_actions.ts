@@ -16,24 +16,32 @@ export const startMarketScan = authActionClient.action(async ({ ctx }) => {
 
 	const base = getBaseUrl();
 
-	const res = await fetch(`${base}/api/search`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Cookie: await cookieHeader(),
-		},
-		body: JSON.stringify({
-			query:
-				"Scan the market based on my preferences (budget, risk, locations, and yield).",
-		}),
-	});
+	try {
+		const res = await fetch(`${base}/api/scan`, {
+			method: "POST",
+			headers: {
+				Accept: "application/json",
+				Cookie: await cookieHeader(),
+			},
+		});
 
-	if (!res.ok) {
-		const err = await res.text().catch(() => "");
-		throw new Error(err || "Failed to start market scan");
+		const data = await res.json().catch(() => ({}));
+
+		if (!res.ok || data?.success === false) {
+			throw new Error(data?.error || "Failed to start market scan");
+		}
+
+		return {
+			ok: true,
+			startedAt: new Date().toISOString(),
+			scan: data,
+		};
+	} catch (err) {
+		console.error("startMarketScan error:", err);
+		throw err instanceof Error
+			? err
+			: new Error("Unexpected error in market scan");
 	}
-
-	return { ok: true, startedAt: new Date().toISOString() };
 });
 
 export const runAnalysis = authActionClient
@@ -41,23 +49,33 @@ export const runAnalysis = authActionClient
 	.action(async ({ parsedInput }) => {
 		const base = getBaseUrl();
 
-		const res = await fetch(`${base}/api/analyze`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Cookie: await cookieHeader(),
-			},
-			body: JSON.stringify({ propertyId: parsedInput.propertyId }),
-		});
+		try {
+			const res = await fetch(`${base}/api/analyze`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+					Cookie: await cookieHeader(),
+				},
+				body: JSON.stringify({ propertyId: parsedInput.propertyId }),
+			});
 
-		if (!res.ok) {
-			const err = await res.text().catch(() => "");
-			throw new Error(err || "Failed to run analysis");
+			const data = await res.json().catch(() => ({}));
+
+			if (!res.ok || data?.success === false) {
+				throw new Error(data?.error || "Failed to run analysis");
+			}
+
+			return {
+				ok: true,
+				analyzedAt: new Date().toISOString(),
+				analysisId: data.analysisId as string,
+				analysis: data.analysis,
+			};
+		} catch (err) {
+			console.error("runAnalysis error:", err);
+			throw err instanceof Error
+				? err
+				: new Error("Unexpected error in analysis");
 		}
-
-		const data = await res.json();
-
-		const analysisId = data.analysisId as string;
-
-		return { ok: true, analyzedAt: new Date().toISOString(), analysisId };
 	});

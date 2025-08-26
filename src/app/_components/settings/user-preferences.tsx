@@ -203,7 +203,7 @@ export function UserPreferences({ locations, user }: UserPreferencesProps) {
 							onClick={startDiscovery}
 							disabled={saving}
 						>
-							{saving ? "Starting…" : "Start AI Property Discovery"}
+							{saving ? "Saving..." : "Save"}
 						</Button>
 					}
 				/>

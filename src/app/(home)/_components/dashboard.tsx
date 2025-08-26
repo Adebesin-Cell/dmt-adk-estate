@@ -537,17 +537,6 @@ export function Dashboard({ user }: DashboardProps) {
 					<Card className="bg-card border-border h-full flex flex-col">
 						<CardHeader className="flex flex-row items-center justify-between">
 							<CardTitle className="text-foreground">Property Alerts</CardTitle>
-							<div className="flex items-center gap-2">
-								<Link href="/alerts">
-									<Button
-										variant="ghost"
-										size="sm"
-										className="text-primary hover:bg-primary/10"
-									>
-										View All
-									</Button>
-								</Link>
-							</div>
 						</CardHeader>
 						<CardContent className="space-y-3 flex-1">
 							{alerts.map((alert) => (
@@ -599,7 +588,6 @@ export function Dashboard({ user }: DashboardProps) {
 						</CardContent>
 					</Card>
 
-					{/* DAO Proposals */}
 					<Card className="bg-card border-border h-full flex flex-col">
 						<CardHeader className="flex flex-row items-center justify-between">
 							<CardTitle className="text-foreground">DAO Proposals</CardTitle>
@@ -678,7 +666,6 @@ export function Dashboard({ user }: DashboardProps) {
 						</CardContent>
 					</Card>
 
-					{/* System Health (static) */}
 					<Card className="bg-card border-border h-full flex flex-col">
 						<CardHeader>
 							<CardTitle className="text-foreground">System Health</CardTitle>

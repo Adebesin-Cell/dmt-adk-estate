@@ -1,7 +1,6 @@
 import { getAuth } from "@everipedia/iq-login";
 import { type NextRequest, NextResponse } from "next/server";
 import { createOrchestratorAgent } from "../modules/agents/agent";
-import { extractAndPersistListings } from "../modules/extractor";
 import { requestSchema } from "./_schema";
 
 export async function POST(request: NextRequest) {
@@ -39,12 +38,9 @@ export async function POST(request: NextRequest) {
 
 		const response = await runner.ask(query);
 
-		const result = await extractAndPersistListings(response, address, false);
-
 		return NextResponse.json({
 			response,
 			timestamp: new Date().toISOString(),
-			...result,
 		});
 	} catch (error) {
 		console.error("Orchestrator agent error:", error);

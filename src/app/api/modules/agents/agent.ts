@@ -1,19 +1,15 @@
 import { env } from "@/env";
 import { getAuth } from "@everipedia/iq-login";
 import { AgentBuilder } from "@iqai/adk";
+import type { Currency, Goal, RiskLevel } from "@prisma/client";
 import dedent from "dedent";
 import { buildInitialState } from "../build-initial-state";
+import { createInvestmentAnalysisAgent } from "./subagents/analyse-investment-agent/agent";
 import { createDiscoveryHubAgent } from "./subagents/discovery-hub-agent/agent";
 
-type OrchestratorOptions = {
-	isRunningTest?: boolean;
-};
-
-export const createOrchestratorAgent = async (
-	opts: OrchestratorOptions = {},
-) => {
-	console.log("Creating orchestrator agent...", opts);
+export const createOrchestratorAgent = async () => {
 	const { address } = await getAuth();
+
 	if (!address) {
 		const { runner } = await AgentBuilder.create(
 			"align_orchestrator_login_gate",
@@ -25,95 +21,99 @@ export const createOrchestratorAgent = async (
 		return { runner };
 	}
 
-	const discoveryHub = await createDiscoveryHubAgent();
+	const [
+		{ agent: discoveryHubAgent },
+		{ agent: investmentAnalysisAgent },
+		initialState,
+	] = await Promise.all([
+		createDiscoveryHubAgent(),
+		createInvestmentAnalysisAgent(),
+		buildInitialState(address),
+	]);
 
-	const initialState = await buildInitialState(address);
-	const prefs = initialState.preferences;
-
-	const locationHint =
-		prefs.locations.length > 0
-			? `Your preferred locations: ${prefs.locations.join(", ")}`
-			: "No preferred locations set";
-
-	console.log("locations", locationHint);
-
-	const budgetHint =
-		prefs.budgetMin || prefs.budgetMax
-			? `Your budget range: ${prefs.budgetMin ? `€${prefs.budgetMin.toLocaleString()}` : "No min"} - ${prefs.budgetMax ? `€${prefs.budgetMax.toLocaleString()}` : "No max"}`
-			: "No budget preferences set";
+	const prefs = initialState.preferences as {
+		budgetMin: number | null;
+		budgetMax: number | null;
+		currency: Currency;
+		risk: RiskLevel;
+		locations: string[];
+		goals: Goal[];
+	};
 
 	const currencySymbol =
 		prefs.currency === "USD" ? "$" : prefs.currency === "GBP" ? "£" : "€";
 
+	const locationHint =
+		prefs.locations && prefs.locations.length > 0
+			? `Your preferred locations: ${prefs.locations.join(", ")}`
+			: "No preferred locations set";
+
+	const budgetHint =
+		prefs.budgetMin !== null || prefs.budgetMax !== null
+			? `Your budget range: ${
+					prefs.budgetMin !== null
+						? `${currencySymbol}${prefs.budgetMin.toLocaleString()}`
+						: "No min"
+				} - ${prefs.budgetMax !== null ? `${currencySymbol}${prefs.budgetMax.toLocaleString()}` : "No max"}`
+			: "No budget preferences set";
+
+	const riskHint = `Your risk level: ${prefs.risk}`;
+	const goalsHint =
+		prefs.goals && prefs.goals.length > 0
+			? `Your investment goals: ${prefs.goals.join(", ")}`
+			: "No investment goals set";
+
+	const contextHints = dedent`
+    User context
+    - ${locationHint}
+    - ${budgetHint}
+    - Default currency symbol: ${currencySymbol}
+    - ${riskHint}
+    - ${goalsHint}
+  `;
+
 	const { runner } = await AgentBuilder.create("align_orchestrator")
 		.withModel("gpt-4.1-mini")
 		.withDescription(
-			"Top-level orchestrator: decides user intent and can persist results.",
+			"Align Orchestrator. Classifies user intent and delegates work to subagents. Uses Discovery Hub for property search/aggregation and Investment Analysis for detailed financial evaluation. May call subagents sequentially or in parallel and combine outputs when helpful.",
 		)
 		.withInstruction(
 			dedent`
-        You are the Align Orchestrator for ${initialState.user.name || initialState.user.wallet}.
+        ${contextHints}
 
-        USER PREFERENCES (use as defaults but allow overrides):
-        - ${locationHint}
-        - ${budgetHint}
-        - Currency: ${prefs.currency}
-        - Risk tolerance: ${prefs.risk}
-        - Saved properties: ${initialState.saved_properties_count}
-        - Investment proposals: ${initialState.proposals_count}
+        You are the Align Orchestrator.
 
-        Decide the user's intent and respond consistently. Possible intents:
-        - DISCOVER — property search (if no location specified, suggest preferred locations first).
-        - COMPARE — compare or rank given listings.
-        - MEMO — draft an investment memo or proposal.
-        - CHAT — anything else.
+        Your role
+        - Decide whether to call the discovery_hub (property search) or analyse_investment_agent (financial analysis).
+        - Never do the work yourself — just route and summarize what happened.
+        - Always keep replies short, clear, and user-friendly.
 
-        DISCOVERY WORKFLOW:
-        1. Use discovery hub to search for properties
-        2. When discovery hub returns listings, ALWAYS call add_properties tool to persist them
-        3. Then format and display the results to user
+        Response Style
+        - Maintain a warm, helpful tone 🙂
+        - Provide a quick note about what each agent can do when routing
+        - If the request is ambiguous, ask clarifying questions 🤔
+        - After delegating, summarize what was accomplished ✅
+        - Suggest a related next action 👉
+        - Use emojis to make the message friendlier 🎉
+        - Answer in plain text only (no markdown), except for short dash lists
 
-        Rules:
-        - If user asks for property search without location, suggest: "I can search in your preferred areas (${prefs.locations.length > 0 ? prefs.locations.join(", ") : "none set yet"}), or specify a different location."
-        - Use user's budget range as defaults in searches unless they specify different amounts.
-        - Always show prices in ${prefs.currency} (${currencySymbol}) unless user requests different currency.
-        - DISCOVER → search properties via discovery hub
-        - COMPARE or MEMO → delegate to relevant subagent if available, otherwise give guidance.
-        - CHAT → answer directly, can reference their preferences naturally.
+        Routing
+        - Property search, browse, find listings → discovery_hub
+        - Financial evaluation, ROI, rent vs buy, cap rate → analyse_investment_agent
+        - Mixed intent (“find then analyze”) → run discovery first, then feed selected results to analysis
 
-        CRITICAL: After discovery hub returns search results, you MUST:
-        1. Look for listings data between "=== LISTINGS_DATA_START ===" and "=== LISTINGS_DATA_END ===" markers in the discovery hub response
-        2. Extract and parse the listings array from that section
-        3. Call add_properties tool with the parsed listings array
-        4. Only then display formatted results to user
+        Handling Outputs
+        - Do not reformat or invent schema outputs — only return raw JSON/schema if the user explicitly asks
+        - By default, only give a friendly summary of what you did and what you found
+        - Example: I searched Paris apartments under ${currencySymbol}1,200 and found 25 listings 🏙️. Want me to analyze the best 3?
 
-        PARSING EXAMPLE:
-        If discovery hub returns text containing:
-        "=== LISTINGS_DATA_START ===
-        [{"source":"CRAIGSLIST","url":"...","price":1000}]
-        === LISTINGS_DATA_END ==="
-
-        Extract that JSON array and pass it to add_properties.
-
-        Response style:
-        - Be concise, friendly, professional. Light emoji use is allowed.
-        - Never mention subagents, tools, or technical steps.
-        - Never output JSON.
-        - Personalize responses using their preferences when relevant.
-
-        For DISCOVER results:
-        - Start with: "Found listings from X sources."
-        - Show up to 5 highlights in this format:
-          "1) 🏡 Title or Address — City or Region • 💰 ${currencySymbol}Price • 🔗 URL"
-        - End with a helpful suggestion starting with "Tip: …"
-        - If no results: say
-          "No matches yet. Tip: Try widening budget, nearby neighborhoods, or fewer filters."
-
-        IMPORTANT: When you receive listings from discovery hub, immediately call add_properties before showing results to user.
+        Guardrails
+        - If no results found, suggest one concrete adjustment (e.g., widen budget or location)
+        - If analysis fails for a listing, continue with the others and mention which one failed
       `,
 		)
-		.withSubAgents([discoveryHub])
+		.withSubAgents([discoveryHubAgent, investmentAnalysisAgent])
 		.build();
 
-	return { runner, initialState };
+	return { runner };
 };
