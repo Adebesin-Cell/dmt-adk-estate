@@ -58,7 +58,6 @@ export function Dashboard({ user }: DashboardProps) {
 			const prop = sp.property;
 			if (!prop) return null;
 			const latest = (prop.analyses ?? [])[0] || null;
-			console.log("latest", latest);
 			if (!latest) return null;
 			const parsed = AnalysisOutputSchema.safeParse(latest.data);
 			console.log(parsed.error);
