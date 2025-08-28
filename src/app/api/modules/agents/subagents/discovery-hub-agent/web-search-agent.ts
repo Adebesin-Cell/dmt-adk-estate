@@ -6,7 +6,7 @@ import { searchWebFallback } from "./tools/web";
 export const createWebFallbackAgent = async () =>
 	new LlmAgent({
 		name: "web_fallback_agent",
-		model: env.LLM_MODEL,
+		model: "gpt-4.1-mini",
 		description:
 			"Searches the wider web (Bing + Google Maps) when core providers don’t cover the user’s region or query.",
 		tools: [searchWebFallback],

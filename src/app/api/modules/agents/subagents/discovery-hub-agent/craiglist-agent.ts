@@ -6,7 +6,7 @@ import { searchCraigslist } from "./tools/craiglist";
 export const createCraigslistAgent = async () =>
 	new LlmAgent({
 		name: "craigslist_agent",
-		model: env.LLM_MODEL,
+		model: "gpt-4.1-mini",
 		description:
 			"Searches user-specified Craigslist regions and returns real listings.",
 		tools: [searchCraigslist],

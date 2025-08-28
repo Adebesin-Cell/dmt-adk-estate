@@ -6,7 +6,7 @@ import { searchZillow } from "./tools/zillow";
 export const createZillowAgent = async () =>
 	new LlmAgent({
 		name: "zillow_agent",
-		model: env.LLM_MODEL,
+		model: "gpt-4.1-mini",
 		description: "Finds Zillow listings that match the user’s criteria.",
 		tools: [searchZillow],
 		instruction: dedent`
