@@ -6,7 +6,7 @@ import { searchLeboncoin } from "./tools/leboncoin";
 export const createLeboncoinAgent = async () =>
 	new LlmAgent({
 		name: "leboncoin_agent",
-		model: "gpt-4.1-mini",
+		model: env.LLM_MODEL,
 		description: "Searches Leboncoin (France) via official API.",
 		tools: [searchLeboncoin],
 		instruction: dedent`

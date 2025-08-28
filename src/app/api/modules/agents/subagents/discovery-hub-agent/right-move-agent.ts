@@ -6,7 +6,7 @@ import { searchRightmove } from "./tools/right-move";
 export const createRightmoveAgent = async () =>
 	new LlmAgent({
 		name: "rightmove_agent",
-		model: "gpt-4.1-mini",
+		model: env.LLM_MODEL,
 		description:
 			"Finds UK properties on Rightmove that fit the user’s request.",
 		tools: [searchRightmove],
