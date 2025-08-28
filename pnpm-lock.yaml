@@ -15,8 +15,8 @@ importers:
         specifier: ^7.1.3
         version: 7.1.4(pa6rx4ct3ltzmbux6kbwnxl4ra)
       '@iqai/adk':
-        specifier: ^0.2.3
-        version: 0.2.3(@opentelemetry/core@2.0.1(@opentelemetry/api@1.9.0))(@prisma/client@6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2))(@types/node@20.19.9)(@types/pg@8.15.4)(bufferutil@4.0.9)(pg@8.16.3)(prisma@6.13.0(typescript@5.9.2))(react@19.1.0)(typescript@5.9.2)(utf-8-validate@5.0.10)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
+        specifier: ^0.2.5
+        version: 0.2.5(@opentelemetry/core@2.0.1(@opentelemetry/api@1.9.0))(@prisma/client@6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2))(@types/node@20.19.9)(@types/pg@8.15.4)(bufferutil@4.0.9)(pg@8.16.3)(prisma@6.13.0(typescript@5.9.2))(react@19.1.0)(typescript@5.9.2)(utf-8-validate@5.0.10)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))
       '@prisma/client':
         specifier: ^6.13.0
         version: 6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2)
@@ -750,11 +750,11 @@ packages:
     resolution: {integrity: sha512-qIFHYTXA5UCLdm9JG+Xf1suomCXxRqa1PKdYjqXuhZsCm8mn37Rb0Tf8djlhDzuRVWyWoQTmsWpsk28ZTmbqJg==}
     engines: {node: '>=18.0.0'}
 
-  '@google/genai@1.15.0':
-    resolution: {integrity: sha512-4CSW+hRTESWl3xVtde7pkQ3E+dDFhDq+m4ztmccRctZfx1gKy3v0M9STIMGk6Nq0s6O2uKMXupOZQ1JGorXVwQ==}
+  '@google/genai@1.16.0':
+    resolution: {integrity: sha512-hdTYu39QgDFxv+FB6BK2zi4UIJGWhx2iPc0pHQ0C5Q/RCi+m+4gsryIzTGO+riqWcUA8/WGYp6hpqckdOBNysw==}
     engines: {node: '>=20.0.0'}
     peerDependencies:
-      '@modelcontextprotocol/sdk': ^1.11.0
+      '@modelcontextprotocol/sdk': ^1.11.4
     peerDependenciesMeta:
       '@modelcontextprotocol/sdk':
         optional: true
@@ -890,8 +890,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@iqai/adk@0.2.3':
-    resolution: {integrity: sha512-r/BAEnMS0UdgeEQV9MZNVtz12S6zCLvLDerjVb2B7wNUxK5b7I2wdoVnLIJ08h+6/PsToAAXsZHcyW5k3HlIzA==}
+  '@iqai/adk@0.2.5':
+    resolution: {integrity: sha512-/9OUx+s/MvzQdZnCVFiaxk9LCpFbYR7Y94qAsd3TW1RyMTw9tQoIkSos0mu9/l6o6MYnjRGXwJL/WumdGXp/pw==}
     engines: {node: '>=22.0'}
     hasBin: true
     peerDependencies:
@@ -4271,6 +4271,10 @@ packages:
   jsonify@0.0.1:
     resolution: {integrity: sha512-2/Ki0GcmuqSrgFyelQq9M05y7PS0mEwuIzrf3f1fPqkVDVRvZrPZtVSMHxdgo8Aq0sxAOb/cr2aqqA3LeWHVPg==}
 
+  jsonrepair@3.13.0:
+    resolution: {integrity: sha512-5YRzlAQ7tuzV1nAJu3LvDlrKtBFIALHN2+a+I1MGJCt3ldRDBF/bZuvIPzae8Epot6KBXd0awRZZcuoeAsZ/mw==}
+    hasBin: true
+
   jsonschema@1.5.0:
     resolution: {integrity: sha512-K+A9hhqbn0f3pJX17Q/7H6yQfD/5OXgdrR5UE12gMXCiN9D5Xq2o5mddV2QEcX/bjla99ASsAAQUyMCCRWAEhw==}
 
@@ -6997,7 +7001,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@google/genai@1.15.0(@modelcontextprotocol/sdk@1.17.4)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+  '@google/genai@1.16.0(@modelcontextprotocol/sdk@1.17.4)(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
     dependencies:
       google-auth-library: 9.15.1
       ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -7107,14 +7111,14 @@ snapshots:
   '@img/sharp-win32-x64@0.34.3':
     optional: true
 
-  '@iqai/adk@0.2.3(@opentelemetry/core@2.0.1(@opentelemetry/api@1.9.0))(@prisma/client@6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2))(@types/node@20.19.9)(@types/pg@8.15.4)(bufferutil@4.0.9)(pg@8.16.3)(prisma@6.13.0(typescript@5.9.2))(react@19.1.0)(typescript@5.9.2)(utf-8-validate@5.0.10)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
+  '@iqai/adk@0.2.5(@opentelemetry/core@2.0.1(@opentelemetry/api@1.9.0))(@prisma/client@6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2))(@types/node@20.19.9)(@types/pg@8.15.4)(bufferutil@4.0.9)(pg@8.16.3)(prisma@6.13.0(typescript@5.9.2))(react@19.1.0)(typescript@5.9.2)(utf-8-validate@5.0.10)(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))':
     dependencies:
       '@anthropic-ai/sdk': 0.39.0
       '@clack/prompts': 0.11.0
       '@electric-sql/pglite': 0.3.7
       '@google-cloud/storage': 7.17.0
       '@google-cloud/vertexai': 0.5.0
-      '@google/genai': 1.15.0(@modelcontextprotocol/sdk@1.17.4)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@google/genai': 1.16.0(@modelcontextprotocol/sdk@1.17.4)(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@modelcontextprotocol/sdk': 1.17.4
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/auto-instrumentations-node': 0.60.1(@opentelemetry/api@1.9.0)(@opentelemetry/core@2.0.1(@opentelemetry/api@1.9.0))
@@ -7135,6 +7139,7 @@ snapshots:
       dotenv: 16.6.1
       drizzle-orm: 0.43.1(@electric-sql/pglite@0.3.7)(@opentelemetry/api@1.9.0)(@prisma/client@6.13.0(prisma@6.13.0(typescript@5.9.2))(typescript@5.9.2))(@types/pg@8.15.4)(kysely@0.28.5)(pg@8.16.3)(prisma@6.13.0(typescript@5.9.2))
       express: 4.21.2
+      jsonrepair: 3.13.0
       kysely: 0.28.5
       openai: 4.104.0(ws@8.18.0(bufferutil@4.0.9)(utf-8-validate@5.0.10))(zod@3.25.76)
       socket.io: 4.8.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
@@ -11795,6 +11800,8 @@ snapshots:
       graceful-fs: 4.2.11
 
   jsonify@0.0.1: {}
+
+  jsonrepair@3.13.0: {}
 
   jsonschema@1.5.0: {}
 
