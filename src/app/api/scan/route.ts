@@ -59,6 +59,7 @@ export async function POST(_req: NextRequest) {
 		}
 
 		const parsed = DiscoveryOutputSchema.safeParse(output);
+
 		if (!parsed.success) {
 			return NextResponse.json(
 				{
@@ -72,6 +73,20 @@ export async function POST(_req: NextRequest) {
 			);
 		}
 
+		if (typeof parsed.data === "string") {
+			// ✅ Handle string case separately
+			return NextResponse.json(
+				{
+					success: false,
+					error: {
+						message: parsed.data,
+					},
+				},
+				{ status: 502 },
+			);
+		}
+
+		// ✅ At this point parsed.data is the object
 		const result = await prisma.property.createMany({
 			data: parsed.data.listings.map((p) => ({
 				source: p.source,

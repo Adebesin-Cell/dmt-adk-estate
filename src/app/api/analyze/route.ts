@@ -91,6 +91,8 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
+		console.log("Agent output:", output);
+
 		const outParsed = AnalysisOutputSchema.safeParse(output);
 		if (!outParsed.success) {
 			return NextResponse.json(
