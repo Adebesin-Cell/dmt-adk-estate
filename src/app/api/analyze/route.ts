@@ -105,6 +105,19 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
+		if (typeof outParsed.data === "string") {
+			return NextResponse.json(
+				{
+					success: false,
+					error: {
+						message: outParsed.data,
+						raw: outParsed.data,
+					},
+				},
+				{ status: 502 },
+			);
+		}
+
 		const saved = await prisma.analysis.create({
 			data: {
 				propertyId,

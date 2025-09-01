@@ -442,8 +442,9 @@ const DataSourceInfoSchema = z.object({
 		.describe("Overall quality/confidence of estimates used."),
 });
 
-export const AnalysisOutputSchema = z
-	.object({
+export const AnalysisOutputSchema = z.union([
+	// your full schema unchanged
+	z.object({
 		version: z
 			.string()
 			.default("2.0")
@@ -500,9 +501,8 @@ export const AnalysisOutputSchema = z
 		dataSource: DataSourceInfoSchema.describe(
 			"Metadata about data sources and estimation quality for transparency.",
 		),
-	})
-	.describe(
-		"Complete structured investment analysis output. All monetary values are in major currency units. All fields are required and non-null.",
-	);
+	}),
+	z.string(),
+]);
 
 export type AnalysisOutput = z.infer<typeof AnalysisOutputSchema>;
