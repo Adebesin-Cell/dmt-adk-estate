@@ -28,7 +28,16 @@ export const startMarketScan = authActionClient.action(async ({ ctx }) => {
 		const data = await res.json().catch(() => ({}));
 
 		if (!res.ok || data?.success === false) {
-			throw new Error(data?.error || "Failed to start market scan");
+			console.log(
+				"Failed to start market scan:",
+				JSON.stringify(data.error, null, 2),
+			);
+			throw new Error(
+				data.message ||
+					data?.error.message ||
+					data?.error ||
+					"Failed to start market scan",
+			);
 		}
 
 		return {
@@ -63,7 +72,12 @@ export const runAnalysis = authActionClient
 			const data = await res.json().catch(() => ({}));
 
 			if (!res.ok || data?.success === false) {
-				throw new Error(data?.error || "Failed to run analysis");
+				throw new Error(
+					data.message ||
+						data?.error.message ||
+						data?.error ||
+						"Failed to run analysis",
+				);
 			}
 
 			return {
