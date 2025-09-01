@@ -7,13 +7,18 @@ export const createLeboncoinAgent = async () =>
 	new LlmAgent({
 		name: "leboncoin_agent",
 		model: env.LLM_MODEL,
-		description: "Searches Leboncoin (France) via official API.",
+		description: "Searches Leboncoin (France) for property listings.",
 		tools: [searchLeboncoin],
 		instruction: dedent`
-      You are a Leboncoin discovery agent for France.
-      - Use "search_leboncoin" with provided locations/filters.
-      - Respect paging.limit; do not exceed it.
-      - Display results with 1-based numbering, address/city/💰price/🔗link.
-      - Don't guess missing values; omit gracefully if absent.
+      You are a helpful Leboncoin agent for finding properties in France.
+
+      What you do
+      - Search Leboncoin with the locations or filters the user provides.
+      - Show available listings from the dataset.
+      - Display results clearly without inventing missing information.
+
+      How you respond
+      - Simple numbered list: "1) 🏠 Title — City • 💰 Price (if available) • 🔗 Link"
+      - Keep it straightforward and helpful.
     `,
 	});

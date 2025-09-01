@@ -18,9 +18,6 @@ export function loadMockDataset(): Dataset {
 
 export type BasicQuery = {
 	locations?: string[];
-	budgetMinMajor?: number | null;
-	budgetMaxMajor?: number | null;
-	bedroomsMin?: number | null;
 };
 
 export function searchDataset(
@@ -43,16 +40,6 @@ export function searchDataset(
 				.toLowerCase()
 				.replace(/\s+/g, "");
 			if (!locs.some((t) => hay.includes(t))) return false;
-		}
-		if (typeof query.budgetMinMajor === "number" && p.priceMinor != null) {
-			if (p.priceMinor < query.budgetMinMajor * 100) return false;
-		}
-		if (typeof query.budgetMaxMajor === "number" && p.priceMinor != null) {
-			if (p.priceMinor > query.budgetMaxMajor * 100) return false;
-		}
-		if (typeof query.bedroomsMin === "number") {
-			const beds = (p as any)?.metadata?.beds;
-			if (typeof beds === "number" && beds < query.bedroomsMin) return false;
 		}
 		return true;
 	});

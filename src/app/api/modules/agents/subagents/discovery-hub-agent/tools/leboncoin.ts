@@ -12,9 +12,6 @@ export const searchLeboncoin = createTool({
 			"LEBONCOIN",
 			{
 				locations: query.locations ?? [],
-				budgetMinMajor: query.budgetMinMajor ?? null,
-				budgetMaxMajor: query.budgetMaxMajor ?? null,
-				bedroomsMin: query.bedroomsMin ?? null,
 			},
 			limit,
 		);
