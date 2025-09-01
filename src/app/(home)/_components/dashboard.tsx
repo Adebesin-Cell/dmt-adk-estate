@@ -47,7 +47,8 @@ export function Dashboard({ user }: DashboardProps) {
 
 	const portfolioTotalMinor = savedProps.reduce((sum, s) => {
 		const analysis = getLatestAnalysis(s.property);
-		if (analysis?.metrics) {
+
+		if (typeof analysis !== "string" && analysis?.metrics) {
 			return sum + analysis.metrics.purchasePrice * 100;
 		}
 		return sum + (getCurrency(s.property).priceMinor ?? 0);
@@ -62,6 +63,7 @@ export function Dashboard({ user }: DashboardProps) {
 			const parsed = AnalysisOutputSchema.safeParse(latest.data);
 			console.log(parsed.error);
 			const data: AnalysisOutput | null = parsed.success ? parsed.data : null;
+			if (typeof data === "string") return null;
 			return { sp, property: prop, analysis: latest, data };
 		})
 		.filter((x): x is NonNullable<typeof x> => !!x && !!x.data);
@@ -93,7 +95,7 @@ export function Dashboard({ user }: DashboardProps) {
 	const pendingValueMinor = pendingProposals.reduce((sum, p) => {
 		// Try to get value from analysis first, then property
 		const analysis = getLatestAnalysis(p.property);
-		if (analysis?.metrics) {
+		if (typeof analysis !== "string" && analysis?.metrics) {
 			return sum + analysis.metrics.purchasePrice * 100;
 		}
 		const { priceMinor } = getCurrency(p.property);
@@ -170,42 +172,53 @@ export function Dashboard({ user }: DashboardProps) {
 			};
 		});
 
-	const portfolioRows = savedProps.map((sp) => {
-		const p = sp.property;
-		const latest = p?.analyses?.[0];
-		const parsed = latest ? AnalysisOutputSchema.safeParse(latest.data) : null;
-		const data: AnalysisOutput | null = parsed?.success ? parsed.data : null;
+	const portfolioRows = savedProps
+		.map((sp) => {
+			const p = sp.property;
+			const latest = p?.analyses?.[0];
+			const parsed = latest
+				? AnalysisOutputSchema.safeParse(latest.data)
+				: null;
+			const data: AnalysisOutput | null = parsed?.success ? parsed.data : null;
 
-		const meta = safeMeta(p?.metadata);
-		const type =
-			meta?.type?.toString().toLowerCase() ||
-			inferTypeFromBedBath(meta?.bedrooms, meta?.bathrooms) ||
-			"residential";
+			if (typeof data === "string") {
+				return null;
+			}
 
-		const riskOverall = summarizeRisk(data);
-		const perf = perfFromRoi(data?.metrics?.totalROI5YearPct);
+			const meta = safeMeta(p?.metadata);
+			const type =
+				meta?.type?.toString().toLowerCase() ||
+				inferTypeFromBedBath(meta?.bedrooms, meta?.bathrooms) ||
+				"residential";
 
-		// Use analysis currency if available
-		const currency = data?.metrics?.currency ?? p?.currency ?? primaryCurrency;
-		const valueMinor = data?.metrics
-			? data.metrics.purchasePrice * 100
-			: getCurrency(p).priceMinor ?? 0;
+			const riskOverall = summarizeRisk(data); // fix like perf
+			const perf = perfFromRoi(
+				typeof data !== "string" ? data?.metrics.totalROI5YearPct : null,
+			);
 
-		return {
-			id: sp.id,
-			name: p?.address ?? p?.city ?? "Untitled Property",
-			city: p?.city,
-			country: p?.country,
-			tokens: `${(meta?.shares as number | undefined) ?? ""}`.trim(),
-			valueMinor,
-			currency,
-			performanceText: perf.text,
-			performanceClass: perf.className,
-			type,
-			risk: riskOverall.level,
-			riskClass: riskOverall.className,
-		};
-	});
+			// Use analysis currency if available
+			const currency =
+				data?.metrics?.currency ?? p?.currency ?? primaryCurrency;
+			const valueMinor = data?.metrics
+				? data.metrics.purchasePrice * 100
+				: getCurrency(p).priceMinor ?? 0;
+
+			return {
+				id: sp.id,
+				name: p?.address ?? p?.city ?? "Untitled Property",
+				city: p?.city,
+				country: p?.country,
+				tokens: `${(meta?.shares as number | undefined) ?? ""}`.trim(),
+				valueMinor,
+				currency,
+				performanceText: perf.text,
+				performanceClass: perf.className,
+				type,
+				risk: riskOverall.level,
+				riskClass: riskOverall.className,
+			};
+		})
+		.filter((x) => x !== null);
 
 	const alerts = buildDummyAlertsFromJSON(propertiesData, primaryCurrency);
 
@@ -752,7 +765,7 @@ function getPrimaryCurrency(savedProps: any[]): string {
 	// Try to get currency from analysis data first
 	for (const sp of savedProps) {
 		const analysis = getLatestAnalysis(sp.property);
-		if (analysis?.metrics?.currency) {
+		if (typeof analysis !== "string" && analysis?.metrics?.currency) {
 			return analysis.metrics.currency;
 		}
 	}
@@ -836,7 +849,7 @@ function classifyStatus(status?: string | null) {
 }
 
 function estimateConfidence(data?: AnalysisOutput | null): number | null {
-	if (!data) return null;
+	if (!data || typeof data !== "object") return null;
 
 	let score = 90;
 	const warnCount = data.warnings?.length ?? 0;
@@ -884,6 +897,11 @@ function summarizeRisk(data?: AnalysisOutput | null): {
 	level: "low" | "medium" | "high";
 	className: string;
 } {
+	if (!data || typeof data !== "object")
+		return {
+			level: "medium",
+			className: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+		};
 	if (!data?.marketAnalysis?.risk)
 		return {
 			level: "medium",
